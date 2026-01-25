@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMU Batch 36 - Interactive Rotation Timeline</title>
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+        body {font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: #fff; padding: 0; margin: 0;}
+        .header {background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 40px 20px; text-align: center; border-bottom: 4px solid #ff6b35;}
+        .header h1 {font-size: 2.5em; color: #ff6b35; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 15px;}
+        .header h1::before {content: "📋"; font-size: 1.2em;}
+        .header p {font-size: 1.2em; color: #c5c5c5;}
+        .stats-container {display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 30px; max-width: 1600px; margin: 0 auto;}
+        .stat-box {background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); border-radius: 15px; padding: 25px; text-align: center; border: 2px solid rgba(255, 107, 53, 0.3); transition: all 0.3s ease;}
+        .stat-box:hover {border-color: #ff6b35; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);}
+        .stat-number {font-size: 3.5em; font-weight: bold; color: #ff6b35; margin-bottom: 10px;}
+        .stat-label {font-size: 1.1em; color: #c5c5c5; text-transform: uppercase; letter-spacing: 1px;}
+        .controls {max-width: 1600px; margin: 0 auto; padding: 20px 30px; background: #0f3460; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; justify-content: space-between;}
+        .controls label {font-size: 1.1em; font-weight: 600; color: #ff6b35;}
+        .controls select, .controls input {padding: 12px 20px; font-size: 1em; border: 2px solid #ff6b35; border-radius: 8px; background: #16213e; color: #fff; cursor: pointer; transition: all 0.3s;}
+        .controls select:hover, .controls input:focus {background: #1a2a4a; border-color: #ff8c5a;}
+        .controls input {min-width: 300px;}
+        .legend {max-width: 1600px; margin: 20px auto; padding: 20px 30px; background: #0f3460; border-radius: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; justify-content: center;}
+        .legend-item {display: flex; align-items: center; gap: 10px;}
+        .legend-color {width: 35px; height: 35px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.2);}
+        .legend-text {font-size: 0.95em; font-weight: 500;}
+        .timeline-container {max-width: 1600px; margin: 0 auto; padding: 30px; overflow-x: auto;}
+        .timeline-table {width: 100%; border-collapse: separate; border-spacing: 0; background: #16213e; border-radius: 12px; overflow: hidden;}
+        .timeline-table thead {background: #0f3460; position: sticky; top: 0; z-index: 10;}
+        .timeline-table th {padding: 15px 10px; text-align: center; font-weight: 600; font-size: 0.95em; border-bottom: 3px solid #ff6b35; color: #ff6b35;}
+        .timeline-table th.student-col {min-width: 200px; max-width: 200px; text-align: left; padding-left: 20px; position: sticky; left: 0; background: #0f3460; z-index: 11;}
+        .timeline-table tbody tr {border-bottom: 1px solid rgba(255, 255, 255, 0.1);}
+        .timeline-table tbody tr:hover {background: rgba(255, 107, 53, 0.1);}
+        .timeline-table td {padding: 12px 8px; text-align: center; font-size: 0.85em; border-right: 1px solid rgba(255, 255, 255, 0.05);}
+        .timeline-table td.student-name {text-align: left; padding-left: 20px; font-weight: 600; font-size: 0.9em; position: sticky; left: 0; background: #16213e; z-index: 5; min-width: 200px; max-width: 200px;}
+        .timeline-table tbody tr:hover td.student-name {background: rgba(255, 107, 53, 0.15);}
+        .rotation-cell {padding: 8px 5px; border-radius: 6px; font-weight: 600; font-size: 0.75em; line-height: 1.3; min-height: 50px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; cursor: pointer; transition: all 0.3s; color: white;}
+        .rotation-cell:hover {transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.3);}
+        .rotation-abbr {font-size: 0.95em; font-weight: bold;}
+        .hospital-label {font-size: 0.7em; opacity: 0.8; margin-top: 2px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 2px;}
+        .week-header {font-weight: bold;}
+        .week-date {font-size: 0.85em; color: #c5c5c5;}
+        .division-header {background: #ff6b35; padding: 20px; font-size: 1.4em; font-weight: bold; text-align: left; position: sticky; left: 0; z-index: 6;}
+        @media (max-width: 768px) {
+            .header h1 {font-size: 1.8em;}
+            .stat-number {font-size: 2.5em;}
+            .timeline-table th, .timeline-table td {padding: 8px 4px; font-size: 0.7em;}
+            .rotation-cell {min-height: 45px; font-size: 0.65em;}
+            .legend {grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));}
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DMU Batch 36 - Interactive Rotation Timeline</h1>
+        <p>Year 5 Term 3 Clinical Clerkship Schedule December 2025 - May 2026</p>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-box"><div class="stat-number">66</div><div class="stat-label">Total Students</div></div>
+        <div class="stat-box"><div class="stat-number">18</div><div class="stat-label">Rotation Weeks</div></div>
+        <div class="stat-box"><div class="stat-number">3</div><div class="stat-label">Divisions</div></div>
+        <div class="stat-box"><div class="stat-number">15</div><div class="stat-label">Locations</div></div>
+    </div>
+
+    <div class="controls">
+        <div><label for="divisionFilter">Division</label>
+            <select id="divisionFilter" onchange="filterDivision()">
+                <option value="all">All Divisions</option>
+                <option value="surgery">Surgery</option>
+                <option value="medicine">Medicine</option>
+                <option value="phc">PHC</option>
+            </select>
+        </div>
+        <div><label for="searchStudent">Search Student</label>
+            <input type="text" id="searchStudent" placeholder="Enter name or ID..." oninput="searchStudents()">
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background: #00b4d8;"></div><span class="legend-text">Rashid Hospital</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #ff6b35;"></div><span class="legend-text">Dubai Hospital</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #6a4c93;"></div><span class="legend-text">Latifa Hospital</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #f4d03f;"></div><span class="legend-text">DMU Campus</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div><span class="legend-text">Al Twar HC</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div><span class="legend-text">Al Khawaneej HC</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #f39c12;"></div><span class="legend-text">Nadd Al Hammar HC</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #2ecc71;"></div><span class="legend-text">Al Mizhar HC</span></div>
+        <div class="legend-item"><div class="legend-color" style="background: #1abc9c;"></div><span class="legend-text">Al Qusais HC</span></div>
+    </div>
+
+    <div class="timeline-container">
+        <table class="timeline-table" id="timelineTable"></table>
+    </div>
+
+    <script>
+        const students = {
+            surgery: [
+                { id: 1, sid: 20210154, name: 'Sarah Salman Siddiqui', group: 'G-I' },
+                { id: 2, sid: 20210145, name: 'Rehaam Fathima', group: 'G-I' },
+                { id: 3, sid: 20210128, name: 'Iraj Fatima', group: 'G-I' },
+                { id: 4, sid: 20210161, name: 'Yusra Jamil', group: 'G-I' },
+                { id: 5, sid: 20210107, name: 'Asiya Mubeen', group: 'G-I' },
+                { id: 6, sid: 20210102, name: 'Afrah Jaffarsadiq', group: 'G-I' },
+                { id: 7, sid: 20210105, name: 'Amina Abdul Gafoor', group: 'G-II' },
+                { id: 8, sid: 20210123, name: 'Fiza Halima', group: 'G-II' },
+                { id: 9, sid: 20210126, name: 'Hafsa Maryam', group: 'G-II' },
+                { id: 10, sid: 20210108, name: 'Asna Ayoob', group: 'G-II' },
+                { id: 11, sid: 20210157, name: 'Sowdo Mohamud Ali', group: 'G-II' },
+                { id: 12, sid: 20210153, name: 'Sarah Ali Abdulla Ali Alyammahi', group: 'H-III' },
+                { id: 13, sid: 20210146, name: 'Rima Alvavi', group: 'H-III' },
+                { id: 14, sid: 20210147, name: 'Roaa Fayez Saeed Ahmad Bin Kuwaiyer', group: 'H-III' },
+                { id: 15, sid: 20210159, name: 'Tasnime Brinsi', group: 'H-III' },
+                { id: 16, sid: 20210156, name: 'Shouq Abdulwahed Juma M Almuwalekh', group: 'H-III' },
+                { id: 17, sid: 20210155, name: 'Shamma Abdulla Mohammed Abdelqader Ahli', group: 'H-IV' },
+                { id: 18, sid: 20200120, name: 'Ghadi Hafiz Awad Fadl Alla', group: 'H-IV' },
+                { id: 19, sid: 20200170, name: 'Zainab Muhanad Abdulrahman AlKasser', group: 'H-IV' },
+                { id: 20, sid: 20200141, name: 'Ola Ali Abd Elrahim Osman', group: 'H-IV' },
+                { id: 21, sid: 20200150, name: 'Samira Zoreik', group: 'H-IV' },
+                { id: 22, sid: 20200168, name: 'Zaha Zainab Manzoor', group: 'H-IV' }
+            ],
+            medicine: [
+                { id: 23, sid: 20210163, name: 'Ola Mansour Tarkhoun', group: 'I-V' },
+                { id: 24, sid: 20210136, name: 'Maryam Omar Owaid Al-Tamo', group: 'I-V' },
+                { id: 25, sid: 20210129, name: 'Laian Mohamad Hamod', group: 'I-V' },
+                { id: 26, sid: 20210124, name: 'Hadil W. Y. Alswaitti', group: 'I-V' },
+                { id: 27, sid: 20210125, name: 'Hafsa Amina Redouane', group: 'I-V' },
+                { id: 28, sid: 20210133, name: 'Lian Wathek Arabi Katbi', group: 'I-V' },
+                { id: 29, sid: 20210148, name: 'Rufaida Osama Osman Mohamed', group: 'I-VI' },
+                { id: 30, sid: 20210131, name: 'Leen Ibrahim Sabbagh', group: 'I-VI' },
+                { id: 31, sid: 20210164, name: 'Maryam Munzer Manzalgi', group: 'I-VI' },
+                { id: 32, sid: 20210166, name: 'Rokia Malahifci', group: 'I-VI' },
+                { id: 33, sid: 20210150, name: 'Sana Ahmed', group: 'I-VI' },
+                { id: 34, sid: 20210114, name: 'Dalia Diary Abd Abdulrahman', group: 'I-VI' },
+                { id: 35, sid: 20210122, name: 'Fatma Badr Ahmad Abdulhamid Alzarooni', group: 'J-VII' },
+                { id: 36, sid: 20210121, name: 'Fatma Ahmed Hamza Ramadan Al-Ali', group: 'J-VII' },
+                { id: 37, sid: 20210106, name: 'Arwa Majed Saeed Majed Almesafri', group: 'J-VII' },
+                { id: 38, sid: 20210139, name: 'Najiba Mohammed Hasan Mahmoud Balas', group: 'J-VIII' },
+                { id: 39, sid: 20210151, name: 'Sarah Ahmed Fathi Muhsen', group: 'J-VIII' },
+                { id: 40, sid: 20210111, name: 'Ayisha Hassan Abdulrahman Saleh Alabdooli', group: 'J-VIII' },
+                { id: 41, sid: 20210109, name: 'Aya Jamal Eid Abdelhadi', group: 'J-VIII' },
+                { id: 42, sid: 20200144, name: 'Rauda Ahmed Mohammed Obaid Aldhaheri', group: 'J-VIII' },
+                { id: 43, sid: 20200154, name: 'Shaikha Abdulaziz Rashed Bualhamam Alnuaimi', group: 'J-VIII' },
+                { id: 44, sid: 20210135, name: 'Mariam DO Mohamed Ismail', group: 'J-VIII' }
+            ],
+            phc: [
+                { id: 45, sid: 20210119, name: 'Fatima Alzahra Nassar', group: 'K-IX', phc_subgroup: '1A' },
+                { id: 46, sid: 20230101, name: 'Omnia Hamad Elsadig Suliman', group: 'K-IX', phc_subgroup: '1A' },
+                { id: 47, sid: 20210110, name: 'Aycha Sleiman Zaher', group: 'K-IX', phc_subgroup: '1B' },
+                { id: 48, sid: 20210130, name: 'Laweezah Arif Zulquarnain', group: 'K-IX', phc_subgroup: '1B' },
+                { id: 49, sid: 20210118, name: 'Fathima Samreen', group: 'K-IX', phc_subgroup: '1B' },
+                { id: 50, sid: 20210120, name: 'Fatma Abdulla Rahma Ali Hassan', group: 'K-X', phc_subgroup: '2A' },
+                { id: 51, sid: 20210104, name: 'Ameerah Rashed Ali Binsaadan Kamzari', group: 'K-X', phc_subgroup: '2A' },
+                { id: 52, sid: 20210112, name: 'Aysha Khaled Mueen Malalla Alhosani', group: 'K-X', phc_subgroup: '2B' },
+                { id: 53, sid: 20230103, name: 'Rashad Shamil Ghanim Hussain Alabo', group: 'K-X', phc_subgroup: '2B' },
+                { id: 54, sid: 20200118, name: 'Fatma Ahmad Abdulaziz Abdulrahim Aljaziri', group: 'K-X', phc_subgroup: '2B' },
+                { id: 55, sid: 20210101, name: 'Afra Abdulla Ateeq Bin Dayoul Aldarmaki', group: 'K-X', phc_subgroup: '2B' },
+                { id: 56, sid: 20210149, name: 'Sadhana Parveen Nazir Ahamed Khan', group: 'L-XI', phc_subgroup: '3' },
+                { id: 57, sid: 20210144, name: 'Reda Iqbal', group: 'L-XI', phc_subgroup: '3' },
+                { id: 58, sid: 20210116, name: 'Faaizah Ahmed', group: 'L-XI', phc_subgroup: '3' },
+                { id: 59, sid: 20210160, name: 'Umaima Syed Abdul Subhan', group: 'L-XI', phc_subgroup: '3' },
+                { id: 60, sid: 20210117, name: 'Fathimathul Henna Parambath', group: 'L-XI', phc_subgroup: '3' },
+                { id: 61, sid: 20210103, name: 'Afsheen Azhar', group: 'L-XII', phc_subgroup: '4A' },
+                { id: 62, sid: 20210165, name: 'Zainab Abdul Hamid', group: 'L-XII', phc_subgroup: '4A' },
+                { id: 63, sid: 20200151, name: 'Saniya Shaukat Merchant', group: 'L-XII', phc_subgroup: '4B' },
+                { id: 64, sid: 20210140, name: 'Naya Isam Ali Al Mikhi', group: 'L-XII', phc_subgroup: '4B' },
+                { id: 65, sid: 20210168, name: 'Maryam Musalam Abdulkarem Ba Musallam', group: 'L-XII', phc_subgroup: '4B' },
+                { id: 66, sid: 20210113, name: 'Dalal Majid A Alsani', group: 'L-XII', phc_subgroup: '4B' }
+            ]
+        };
+
+        const weeks = [
+            { num: 1, date: '8-Dec' }, { num: 2, date: '15-Dec' }, { num: 3, date: '5-Jan' }, { num: 4, date: '12-Jan' },
+            { num: 5, date: '19-Jan' }, { num: 6, date: '26-Jan' }, { num: 7, date: '2-Feb' }, { num: 8, date: '9-Feb' },
+            { num: 9, date: '16-Feb' }, { num: 10, date: '23-Feb' }, { num: 11, date: '2-Mar' }, { num: 12, date: '9-Mar' },
+            { num: 13, date: '16-Mar' }, { num: 14, date: '30-Mar' }, { num: 15, date: '6-Apr' }, { num: 16, date: '13-Apr' },
+            { num: 17, date: '20-Apr' }, { num: 18, date: '27-Apr' }
+        ];
+
+        const rotations = {
+            surgery: {
+                'G-I': [{ W1: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Vasc', detail: 'General Surgery, Ortho-Trauma, Vascular Surgery'}, W2: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Vasc', detail: 'General Surgery, Ortho-Trauma, Vascular Surgery'}, W3: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Neuro', detail: 'General Surgery, Ortho-Trauma, Neurosurgery'}, W4: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Plastic', detail: 'General Surgery, Ortho-Trauma, Plastic Surgery'}, W5: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Thoracic', detail: 'General Surgery, Ortho-Trauma, Thoracic Surgery'}, W6: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W7: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W8: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W9: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W10: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Cardio-Thor', detail: 'General Surgery, Cardio-Thoracic'}, W11: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W12: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W13: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W14: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W15: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W16: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W17: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'}, W18: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'} }],
+                'G-II': [{ W1: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W2: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W3: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W4: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W5: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Cardio-Thor', detail: 'General Surgery, Cardio-Thoracic'}, W6: {hospital: 'Rashid Hospital', rotation: 'Gen Surg 4-Spec', detail: 'General Surgery, Ortho, Neuro, Plastic'}, W7: {hospital: 'Rashid Hospital', rotation: 'Gen Surg 4-Spec', detail: 'General Surgery, Ortho, Neuro, Plastic'}, W8: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Neuro', detail: 'General Surgery, Ortho-Trauma, Neurosurgery'}, W9: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Plastic', detail: 'General Surgery, Ortho-Trauma, Plastic Surgery'}, W10: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Thoracic', detail: 'General Surgery, Ortho-Trauma, Thoracic Surgery'}, W11: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W12: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W13: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W14: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W15: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W16: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W17: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'}, W18: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'} }],
+                'H-III': [{ W1: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W2: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W3: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W4: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W5: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W6: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W7: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'}, W8: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'}, W9: {hospital: 'Rashid Hospital', rotation: 'Gen Surg 4-Spec', detail: 'General Surgery, Ortho, Neuro, Plastic'}, W10: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Neuro', detail: 'General Surgery, Ortho-Trauma, Neurosurgery'}, W11: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Plastic', detail: 'General Surgery, Ortho-Trauma, Plastic Surgery'}, W12: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Thoracic', detail: 'General Surgery, Ortho-Trauma, Thoracic Surgery'}, W13: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Vasc', detail: 'General Surgery, Ortho-Trauma, Vascular Surgery'}, W14: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W15: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W16: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W17: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Cardio-Thor', detail: 'General Surgery, Cardio-Thoracic'}, W18: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'} }],
+                'H-IV': [{ W1: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W2: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W3: {hospital: 'Rashid Hospital', rotation: 'AE Afternoon', detail: 'Accident Emergency Afternoon'}, W4: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'}, W5: {hospital: 'Rashid Hospital', rotation: 'Radiology, Anes', detail: 'Radiology, Anesthesia'}, W6: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W7: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W8: {hospital: 'Rashid Hospital', rotation: 'AE Morning', detail: 'Accident Emergency Morning'}, W9: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W10: {hospital: 'Dubai Hospital', rotation: 'Gen Surg', detail: 'General Surgery'}, W11: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W12: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Uro, Ortho', detail: 'General Surgery, Urology, Orthopaedics'}, W13: {hospital: 'Dubai Hospital', rotation: 'Gen Surg, Cardio-Thor', detail: 'General Surgery, Cardio-Thoracic'}, W14: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Vasc', detail: 'General Surgery, Ortho-Trauma, Vascular Surgery'}, W15: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Vasc', detail: 'General Surgery, Ortho-Trauma, Vascular Surgery'}, W16: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Neuro', detail: 'General Surgery, Ortho-Trauma, Neurosurgery'}, W17: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Plastic', detail: 'General Surgery, Ortho-Trauma, Plastic Surgery'}, W18: {hospital: 'Rashid Hospital', rotation: 'Gen Surg, Ortho, Thoracic', detail: 'General Surgery, Ortho-Trauma, Thoracic Surgery'} }]
+            },
+            medicine: {
+                'I-V': [{ W1: {hospital: 'Dubai Hospital', rotation: 'Rheum', detail: 'Rheumatology'}, W2: {hospital: 'Dubai Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W3: {hospital: 'Latifa Hospital', rotation: 'Thalass', detail: 'Thalassemia'}, W4: {hospital: 'Dubai Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W5: {hospital: 'Dubai Hospital', rotation: 'Endo', detail: 'Endocrinology'}, W6: {hospital: 'Dubai Hospital', rotation: 'Haem', detail: 'Haematology'}, W7: {hospital: 'Dubai Hospital', rotation: 'Nephro', detail: 'Nephrology'}, W8: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W9: {hospital: 'Rashid Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W10: {hospital: 'Rashid Hospital', rotation: 'Infect', detail: 'Infectious Disease'}, W11: {hospital: 'Rashid Hospital', rotation: 'Derm', detail: 'Dermatology'}, W12: {hospital: 'Rashid Hospital', rotation: 'Crit Care', detail: 'Critical Care'}, W13: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W14: {hospital: 'Rashid Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W15: {hospital: 'Rashid Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W16: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W17: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W18: {hospital: 'TBD', rotation: 'Psych', detail: 'Psychiatry - TBC'} }],
+                'I-VI': [{ W1: {hospital: 'Dubai Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W2: {hospital: 'Dubai Hospital', rotation: 'Rheum', detail: 'Rheumatology'}, W3: {hospital: 'Dubai Hospital', rotation: 'Nephro', detail: 'Nephrology'}, W4: {hospital: 'Dubai Hospital', rotation: 'Haem', detail: 'Haematology'}, W5: {hospital: 'Dubai Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W6: {hospital: 'Dubai Hospital', rotation: 'Endo', detail: 'Endocrinology'}, W7: {hospital: 'Latifa Hospital', rotation: 'Thalass', detail: 'Thalassemia'}, W8: {hospital: 'Rashid Hospital', rotation: 'Derm', detail: 'Dermatology'}, W9: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W10: {hospital: 'Rashid Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W11: {hospital: 'Rashid Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W12: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W13: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W14: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W15: {hospital: 'Rashid Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W16: {hospital: 'Rashid Hospital', rotation: 'Infect', detail: 'Infectious Disease'}, W17: {hospital: 'TBD', rotation: 'Psych', detail: 'Psychiatry - No Hospital'}, W18: {hospital: 'Rashid Hospital', rotation: 'Crit Care', detail: 'Critical Care'} }],
+                'J-VII': [{ W1: {hospital: 'Rashid Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W2: {hospital: 'Rashid Hospital', rotation: 'Infect', detail: 'Infectious Disease'}, W3: {hospital: 'Rashid Hospital', rotation: 'Derm', detail: 'Dermatology'}, W4: {hospital: 'Rashid Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W5: {hospital: 'Rashid Hospital', rotation: 'Crit Care', detail: 'Critical Care'}, W6: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W7: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W8: {hospital: 'Latifa Hospital', rotation: 'Thalass', detail: 'Thalassemia'}, W9: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W10: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W11: {hospital: 'Rashid Hospital', rotation: 'Rheum', detail: 'Rheumatology'}, W12: {hospital: 'Dubai Hospital', rotation: 'Endo', detail: 'Endocrinology'}, W13: {hospital: 'Dubai Hospital', rotation: 'Nephro', detail: 'Nephrology'}, W14: {hospital: 'Dubai Hospital', rotation: 'Haem', detail: 'Haematology'}, W15: {hospital: 'Dubai Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W16: {hospital: 'TBD', rotation: 'Psych', detail: 'Psychiatry - No Hospital'}, W17: {hospital: 'Dubai Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W18: {hospital: 'Dubai Hospital', rotation: 'Int Med', detail: 'Internal Medicine'} }],
+                'J-VIII': [{ W1: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W2: {hospital: 'Rashid Hospital', rotation: 'Digest', detail: 'Digestive Disease'}, W3: {hospital: 'Rashid Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W4: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W5: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W6: {hospital: 'Rashid Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W7: {hospital: 'Rashid Hospital', rotation: 'Derm', detail: 'Dermatology'}, W8: {hospital: 'Rashid Hospital', rotation: 'Infect', detail: 'Infectious Disease'}, W9: {hospital: 'Rashid Hospital', rotation: 'Crit Care', detail: 'Critical Care'}, W10: {hospital: 'Dubai Hospital', rotation: 'Nephro', detail: 'Nephrology'}, W11: {hospital: 'Dubai Hospital', rotation: 'Endo', detail: 'Endocrinology'}, W12: {hospital: 'Dubai Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W13: {hospital: 'Dubai Hospital', rotation: 'Int Med', detail: 'Internal Medicine'}, W14: {hospital: 'Dubai Hospital', rotation: 'Rheum', detail: 'Rheumatology'}, W15: {hospital: 'TBD', rotation: 'Psych', detail: 'Psychiatry - No Hospital'}, W16: {hospital: 'Dubai Hospital', rotation: 'Haem', detail: 'Haematology'}, W17: {hospital: 'Dubai Hospital', rotation: 'Cardio', detail: 'Cardiology'}, W18: {hospital: 'Latifa Hospital', rotation: 'Thalass', detail: 'Thalassemia'} }]
+            },
+            phc: {
+                '1A': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W16: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W17: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'}, W18: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'} }],
+                '1B': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W16: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W17: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'}, W18: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'} }],
+                '2A': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W16: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W17: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'}, W18: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'} }],
+                '2B': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W16: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W17: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'}, W18: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'} }],
+                '3': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Al Twar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'}, W16: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'}, W17: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'}, W18: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'} }],
+                '4A': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Al Khawaneej HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'}, W16: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'}, W17: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W18: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'} }],
+                '4B': [{ W1: {hospital: 'DMU Campus', rotation: 'Academic', detail: 'Academic Day'}, W2: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W3: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W4: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W5: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W6: {hospital: 'Al Qusais HC', rotation: 'PHC', detail: 'Primary Health Care'}, W7: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W8: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W9: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W10: {hospital: 'Nadd Al Hammar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W11: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W12: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W13: {hospital: 'Al Mizhar HC', rotation: 'PHC', detail: 'Primary Health Care'}, W14: {hospital: 'DMU Campus', rotation: 'PHC', detail: 'Primary Health Care'}, W15: {hospital: 'Dubai Hospital', rotation: 'Ophtha', detail: 'Ophthalmology'}, W16: {hospital: 'Dubai Hospital', rotation: 'ENT', detail: 'ENT Surgery'}, W17: {hospital: 'Rashid Hospital', rotation: 'Neuro', detail: 'Neurology'}, W18: {hospital: 'Rashid Hospital', rotation: 'Pulmo', detail: 'Pulmonology'} }]
+            }
+        };
+
+        function getHospitalClass(hospital) {
+            const colorMap = {
+                'Rashid Hospital': '#00b4d8',
+                'Dubai Hospital': '#ff6b35',
+                'Latifa Hospital': '#6a4c93',
+                'DMU Campus': '#f4d03f',
+                'Al Twar HC': '#3498db',
+                'Al Khawaneej HC': '#e74c3c',
+                'Nadd Al Hammar HC': '#f39c12',
+                'Al Mizhar HC': '#2ecc71',
+                'Al Qusais HC': '#1abc9c',
+                'TBD': '#555555'
+            };
+            return colorMap[hospital] || '#f4d03f';
+        }
+
+        function generateTable(division = 'all') {
+            const table = document.getElementById('timelineTable');
+            let html = '<thead><tr><th class="student-col">Student Name</th>';
+            weeks.forEach(week => { html += `<th><div class="week-header">W${week.num}</div><div class="week-date">${week.date}</div></th>`; });
+            html += '</tr></thead><tbody>';
+
+            if (division === 'all' || division === 'surgery') {
+                html += '<tr><td colspan="19" class="division-header">SURGERY DIVISION</td></tr>';
+                students.surgery.forEach(student => {
+                    html += `<tr data-division="surgery" data-name="${student.name.toLowerCase()}" data-id="${student.sid}"><td class="student-name">${student.name}</td>`;
+                    for (let w = 1; w <= 18; w++) {
+                        const rotation = getRotation('surgery', student.group, w);
+                        const bgColor = getHospitalClass(rotation.hospital);
+                        html += `<td><div class="rotation-cell" style="background: linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%);" title="${rotation.hospital}: ${rotation.detail}"><span class="rotation-abbr">${rotation.rotation}</span><span class="hospital-label">${rotation.hospital.substring(0, 20)}</span></div></td>`;
+                    }
+                    html += '</tr>';
+                });
+            }
+
+            if (division === 'all' || division === 'medicine') {
+                html += '<tr><td colspan="19" class="division-header">MEDICINE DIVISION</td></tr>';
+                students.medicine.forEach(student => {
+                    html += `<tr data-division="medicine" data-name="${student.name.toLowerCase()}" data-id="${student.sid}"><td class="student-name">${student.name}</td>`;
+                    for (let w = 1; w <= 18; w++) {
+                        const rotation = getRotation('medicine', student.group, w);
+                        const bgColor = getHospitalClass(rotation.hospital);
+                        html += `<td><div class="rotation-cell" style="background: linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%);" title="${rotation.hospital}: ${rotation.detail}"><span class="rotation-abbr">${rotation.rotation}</span><span class="hospital-label">${rotation.hospital.substring(0, 20)}</span></div></td>`;
+                    }
+                    html += '</tr>';
+                });
+            }
+
+            if (division === 'all' || division === 'phc') {
+                html += '<tr><td colspan="19" class="division-header">PRIMARY HEALTHCARE (PHC) DIVISION</td></tr>';
+                students.phc.forEach(student => {
+                    html += `<tr data-division="phc" data-name="${student.name.toLowerCase()}" data-id="${student.sid}"><td class="student-name">${student.name}</td>`;
+                    for (let w = 1; w <= 18; w++) {
+                        const rotation = getRotation('phc', student.phc_subgroup, w);
+                        const bgColor = getHospitalClass(rotation.hospital);
+                        html += `<td><div class="rotation-cell" style="background: linear-gradient(135deg, ${bgColor} 0%, ${bgColor}cc 100%);" title="${rotation.hospital}: ${rotation.detail}"><span class="rotation-abbr">${rotation.rotation}</span><span class="hospital-label">${rotation.hospital.substring(0, 20)}</span></div></td>`;
+                    }
+                    html += '</tr>';
+                });
+            }
+
+            html += '</tbody>';
+            table.innerHTML = html;
+        }
+
+        function getRotation(division, group, week) {
+            const weekKey = `W${week}`;
+            const rotationMap = rotations[division][group];
+            return rotationMap[0][weekKey] || {hospital: 'TBD', rotation: 'TBD', detail: 'To Be Determined'};
+        }
+
+        function filterDivision() { const division = document.getElementById('divisionFilter').value; generateTable(division); }
+        function searchStudents() {
+            const search = document.getElementById('searchStudent').value.toLowerCase();
+            const rows = document.querySelectorAll('.timeline-table tbody tr');
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const id = row.getAttribute('data-id');
+                if (!name || !id) return;
+                if (name.includes(search) || id.includes(search)) { row.style.display = ''; } else { row.style.display = 'none'; }
+            });
+        }
+
+        generateTable();
+    </script>
+</body>
+</html>
