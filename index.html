@@ -1,0 +1,3264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMU Batch 36 - Clinical Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    color: #fff;
+
+    /* Innovative layered medical-grade background */
+    background:
+        linear-gradient(135deg, #020617 0%, #0f172a 40%, #1a1a2e 100%),
+
+        radial-gradient(circle at top right, rgba(102,126,234,0.15), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(240,147,251,0.12), transparent 45%),
+
+        repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,0.02),
+            rgba(255,255,255,0.02) 1px,
+            transparent 1px,
+            transparent 40px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.02),
+            rgba(255,255,255,0.02) 1px,
+            transparent 1px,
+            transparent 40px
+        );
+
+    background-attachment: fixed;
+}
+@keyframes bgShift {
+    0% { background-position: 0% 0%, 100% 0%, 0% 100%, 0 0, 0 0; }
+    100% { background-position: 100% 100%, 0% 100%, 100% 0%, 0 0, 0 0; }
+}
+
+body {
+    animation: bgShift 40s linear infinite;
+}
+     
+        .nav-bar { 
+            background: linear-gradient(90deg, #16213e 0%, #0f3460 50%, #533483 100%);
+            padding: 15px 25px; 
+            display: flex; 
+            gap: 12px; 
+            flex-wrap: wrap; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        .nav-tab { 
+            padding: 12px 20px; 
+            border-radius: 8px; 
+            border: none;
+            font-weight: 700; 
+            font-size: 0.9em; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .nav-tab:nth-child(1) { background: linear-gradient(135deg, #ff6b6b, #ff5252); color: #fff; }
+        .nav-tab:nth-child(2) { background: linear-gradient(135deg, #4ecdc4, #44b8aa); color: #fff; }
+        .nav-tab:nth-child(3) { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+        .nav-tab:nth-child(4) { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; }
+        .nav-tab:nth-child(5) { background: linear-gradient(135deg, #fa709a, #fee140); color: #000; }
+        .nav-tab:nth-child(6) { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #000; }
+        .nav-tab:nth-child(7) { background: linear-gradient(135deg, #667eea, #4ecdc4); color: #fff; }
+        
+        .nav-tab:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0,0,0,0.4); }
+        .nav-tab.active { box-shadow: 0 8px 30px rgba(255,255,255,0.3); }
+        
+        .header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 { 
+            font-size: 2.2em; 
+            margin-bottom: 10px; 
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p { 
+            font-size: 1em; 
+            opacity: 0.95;
+            font-weight: 500;
+        }
+        
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+            gap: 20px; 
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(240,147,251,0.1));
+            border-bottom: 2px solid rgba(102,126,234,0.2);
+        }
+        
+        .stat-box { 
+            background: rgba(255,255,255,0.08);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid rgba(102,126,234,0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        
+        .stat-box:hover { 
+            transform: translateY(-5px);
+            border-color: rgba(102,126,234,0.5);
+            background: rgba(255,255,255,0.12);
+        }
+        
+        .stat-number { 
+            font-size: 2.2em; 
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b6b, #667eea, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label { 
+            font-size: 0.75em; 
+            color: #b0b0d0; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        
+        .container { max-width: 100%; margin: 0; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .filter-section { 
+            padding: 20px 30px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-section label { 
+            font-weight: 700;
+            color: #b0b0d0;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+        
+        .filter-section input, 
+        .filter-section select { 
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(102,126,234,0.4);
+            font-size: 0.9em;
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            transition: all 0.3s;
+            min-width: 200px;
+            font-weight: 600;
+        }
+        
+        .filter-section input:focus, 
+        .filter-section select:focus { 
+            outline: none;
+            border-color: #667eea;
+            background: rgba(102,126,234,0.15);
+            box-shadow: 0 0 20px rgba(102,126,234,0.3);
+        }
+        
+        .filter-section input::placeholder { color: #888; }
+        
+.timeline-wrapper {
+    padding: 0;  /* ← CHANGE: Remove padding from wrapper */
+    overflow-x: auto;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.2);
+    display: block;
+    max-height: 600px;
+    position: relative;
+    margin-top: 15px;
+}
+    .timeline-table {
+    width: calc(100% - 60px);  /* ← ADD THIS */
+    margin: 20px 30px;  /* ← ADD THIS (moves padding from wrapper to table) */
+    border-collapse: collapse;
+    font-size: 0.8em;
+}
+.timeline-table thead {
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+}
+
+.timeline-table thead tr {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+}
+.timeline-table th {
+    padding: 12px 8px 10px 8px;
+    text-align: center;
+    font-weight: 700;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    line-height: 1.4;
+    min-width: 85px;
+    vertical-align: middle;
+    position: sticky !important;  /* ← CHANGE: Add !important */
+    top: 0 !important;  /* ← ADD: !important */
+    z-index: 1000 !important;  /* ← CHANGE: 999 → 1000, add !important */
+    background: linear-gradient(90deg, #4a5a7a, #5a4a7a, #8a5a9a);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+} 
+.timeline-table th.student-col {
+    text-align: left;
+    padding-left: 15px;
+    ...
+}
+.timeline-table th.student-col {
+    text-align: left;
+    padding-left: 15px;
+    min-width: 180px;
+    position: sticky;
+    left: 0;
+    top: 0;
+    z-index: 1001;
+    background: linear-gradient(90deg, #4a5a7a, #5a4a7a, #8a5a9a);
+    box-shadow: inset 2px 0 8px rgba(0,0,0,0.2);
+}
+        
+        .timeline-table tbody tr { 
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.2s;
+        }
+        
+        .timeline-table tbody tr:hover { 
+            background: rgba(102,126,234,0.15);
+        }
+        
+        .timeline-table tbody tr.division-header { 
+            background: rgba(102,126,234,0.25);
+            border: 2px solid #667eea;
+            font-weight: 900;
+            color: #667eea;
+            height: 40px;
+        }
+        
+        .timeline-table tbody tr.division-header td { 
+            padding: 10px 15px;
+            text-align: left;
+        }
+        
+        .timeline-table td { 
+            padding: 8px 6px;
+            text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        
+      .timeline-table td.student-name {
+    text-align: left;
+    padding-left: 15px;
+    font-weight: 700;
+    color: #b0e0ff;
+    position: sticky;
+    left: 0;
+    background: rgba(20,20,40,0.98);
+    z-index: 50;
+    min-width: 180px;
+    border-right: 2px solid rgba(102,126,234,0.3);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.2);
+}
+        
+.week-label {
+    font-weight: 900;
+    font-size: 1.3em;
+    letter-spacing: 0.8px;
+    display: block;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.week-dates {
+    font-size: 0.95em;
+    opacity: 1;
+    display: block;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+        
+    .rotation-cell {
+    padding: 12px 8px;
+    border-radius: 8px;
+    font-weight: 900;
+    font-size: 0.95em;
+    line-height: 1.4;
+    min-height: 85px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transform: translateZ(0);
+    position: relative;
+}
+
+.rotation-cell::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+    border-radius: 8px;
+    pointer-events: none;
+}
+        
+.rotation-cell:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+        
+        .rot-spec {
+    font-weight: 900;
+    font-size: 1em;
+    display: block;
+    margin-bottom: 4px;
+}
+  .rot-hosp {
+    font-size: 0.95em;
+    opacity: 0.95;
+    display: block;
+    font-weight: 800;
+    margin-top: 2px;
+}
+        .rotation-cell.hospital-rashid { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .rotation-cell.hospital-dubai { background: linear-gradient(135deg, #ff6b6b, #ff5252); }
+        .rotation-cell.hospital-latifa { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .rotation-cell.hc-twar { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #000; }
+        .rotation-cell.hc-khawaneej { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #000; }
+        .rotation-cell.hc-nadd { background: linear-gradient(135deg, #fa709a, #fee140); color: #000; }
+        .rotation-cell.hc-mizhar { background: linear-gradient(135deg, #30cfd0, #330867); }
+        .rotation-cell.hc-qusais { background: linear-gradient(135deg, #a8edea, #fed6e3); color: #000; }
+        .rotation-cell.campus { background: linear-gradient(135deg, #43e97b, #f5f76c); color: #333; font-weight: 900; }
+        .rotation-cell.psych {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.5);
+    font-weight: 800;
+    box-shadow: 0 4px 15px rgba(243,156,18,0.4);
+}
+
+        .content-section { padding: 30px; }
+        
+        .section-box { 
+            background: rgba(20,20,50,0.6);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid;
+            backdrop-filter: blur(10px);
+        }
+        
+        .section-box.assessment { border-left-color: #ff6b6b; }
+        .section-box.dates { border-left-color: #4ecdc4; }
+        .section-box.faculty { border-left-color: #43e97b; }
+        
+        .section-box h2 { 
+            color: #fff;
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .assessment-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .assessment-box { 
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,107,107,0.2);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        
+        .assessment-box h3 { 
+            color: #ff6b6b;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+            border-bottom: 2px solid rgba(255,107,107,0.2);
+            padding-bottom: 10px;
+        }
+        
+        .assessment-item { 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95em;
+        }
+        
+        .assessment-item:last-child { border-bottom: none; }
+        .checkmark { color: #4ecdc4; font-weight: 800; }
+        
+        .table-box { 
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        
+        .table-box table { 
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table-box th { 
+            background: rgba(255,107,107,0.2);
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #ff6b6b;
+        }
+        
+        .table-box td { 
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .table-box tbody tr:hover { background: rgba(255,107,107,0.08); }
+        
+        .table-box .date-highlight { color: #ff6b6b; font-weight: 700; }
+        .table-box .total-row { background: rgba(255,107,107,0.15); font-weight: 700; }
+        .table-box .marks-row { background: rgba(255,107,107,0.2); font-weight: 700; color: #ff6b6b; }
+        
+        .directory-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            padding: 20px 0;
+        }
+        
+        .student-card { 
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .student-card:hover { 
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.08);
+        }
+        
+        .student-card .name { 
+            font-size: 0.9em;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        
+        .student-card .id { 
+            font-size: 0.75em;
+            color: #b0b0d0;
+            margin-bottom: 4px;
+        }
+        
+        .student-card .phone { 
+            font-size: 0.75em;
+            color: #4ecdc4;
+            margin-bottom: 3px;
+        }
+        
+        .student-card .group { 
+            font-size: 0.75em;
+            color: #f093fb;
+        }
+        
+        .faculty-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 15px;
+            padding: 20px 0;
+        }
+        
+        .faculty-card { 
+            background: rgba(20,20,50,0.8);
+            border: 2px solid rgba(67,233,123,0.2);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .faculty-card:hover { 
+            transform: translateY(-3px);
+            border-color: rgba(67,233,123,0.6);
+            box-shadow: 0 8px 25px rgba(67,233,123,0.15);
+        }
+        
+        .faculty-card .title { 
+            font-size: 1em;
+            font-weight: 800;
+            color: #43e97b;
+            margin-bottom: 5px;
+        }
+        
+        .faculty-card .name { 
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        
+        .faculty-card .designation { 
+            font-size: 0.8em;
+            color: #a8edea;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(67,233,123,0.2);
+        }
+        
+        .faculty-card .contact { 
+            font-size: 0.75em;
+            color: #b0b0d0;
+            margin-bottom: 2px;
+        }
+        
+        .faculty-card .email { 
+            font-size: 0.75em;
+            color: #667eea;
+            word-break: break-all;
+        }
+        
+        .heatmap-section { padding: 30px; background: rgba(0,0,0,0.2); }
+        
+        .heatmap-intro { 
+            background: linear-gradient(135deg, rgba(102,126,234,0.15), rgba(240,147,251,0.15));
+            border-left: 5px solid #f093fb;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .heatmap-intro h2 { 
+            color: #f093fb;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        
+        .heatmap-intro p { 
+            color: #b0b0d0;
+            font-size: 1em;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .heatmap-intro .friday-note { 
+            color: #43e97b;
+            font-weight: 900;
+            font-size: 1.1em;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(67,233,123,0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(67,233,123,0.3);
+        }
+        
+        .heatmap-container { 
+            overflow-x: auto;
+            background: linear-gradient(135deg, rgba(20,20,50,0.8), rgba(30,30,60,0.8));
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .heatmap-table { 
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 3px;
+            font-size: 0.85em;
+        }
+        
+        .heatmap-table th, 
+        .heatmap-table td { 
+            padding: 14px 10px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: all 0.2s;
+        }
+        
+        .heatmap-table th { 
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            font-weight: 900;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .heatmap-table td { 
+            cursor: pointer;
+        }
+        
+        .heatmap-table td:hover { 
+            transform: scale(1.08);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+            z-index: 10;
+        }
+        
+        .heatmap-table tbody tr td:first-child { 
+            text-align: left;
+            padding-left: 15px;
+            background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
+            color: #fff;
+            font-weight: 900;
+            min-width: 180px;
+        }
+        
+        .heatmap-cell-0 { 
+            background: linear-gradient(135deg, rgba(30,30,80,0.6), rgba(20,20,60,0.8)); 
+            color: #666;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .heatmap-cell-1-3 { 
+            background: linear-gradient(135deg, rgba(70,150,200,0.5), rgba(50,130,180,0.7)); 
+            color: #fff;
+        }
+        
+        .heatmap-cell-4-6 { 
+            background: linear-gradient(135deg, rgba(100,150,200,0.6), rgba(80,130,180,0.8)); 
+            color: #fff;
+        }
+        
+        .heatmap-cell-7-9 { 
+            background: linear-gradient(135deg, rgba(150,150,200,0.6), rgba(130,130,180,0.8)); 
+            color: #fff;
+        }
+        
+        .heatmap-cell-10-12 { 
+            background: linear-gradient(135deg, rgba(102,126,234,0.6), rgba(82,106,214,0.8)); 
+            color: #fff;
+        }
+        
+        .heatmap-cell-13-15 { 
+            background: linear-gradient(135deg, rgba(100,200,150,0.6), rgba(80,180,130,0.8)); 
+            color: #000;
+            font-weight: 800;
+        }
+        
+        .heatmap-cell-16-18 { 
+            background: linear-gradient(135deg, rgba(255,200,100,0.6), rgba(235,180,80,0.8)); 
+            color: #000;
+            font-weight: 800;
+        }
+        
+        .heatmap-cell-19-21 { 
+            background: linear-gradient(135deg, rgba(255,150,100,0.7), rgba(235,130,80,0.9)); 
+            color: #fff;
+            font-weight: 900;
+        }
+        
+        .heatmap-cell-22 { 
+            background: linear-gradient(135deg, rgba(255,107,107,0.8), rgba(255,82,82,1)); 
+            color: #fff;
+            font-weight: 900;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.5);
+        }
+        
+        .heatmap-cell-66 { 
+            background: linear-gradient(135deg, rgba(67,233,123,0.8), rgba(56,249,215,1)); 
+            color: #000;
+            font-weight: 900;
+            font-size: 1.1em;
+            box-shadow: 0 4px 20px rgba(67,233,123,0.6);
+        }
+        
+        .heatmap-legend { 
+            padding: 25px 0;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            justify-content: center;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .legend-item { 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .legend-item:hover { 
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.05);
+        }
+        
+        .legend-box { 
+            width: 25px;
+            height: 25px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .breakdown-cards { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .breakdown-card { 
+            background: linear-gradient(135deg, rgba(20,20,50,0.9), rgba(30,30,60,0.9));
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .breakdown-card:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .breakdown-card h4 { 
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        
+        .breakdown-card .big-number { 
+            font-size: 2.5em;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+        
+        .breakdown-card .sub-text { 
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+        
+        .breakdown-card.card-1 { border-color: #ff6b6b; }
+        .breakdown-card.card-1 h4 { color: #ff6b6b; }
+        .breakdown-card.card-1 .big-number { color: #ff6b6b; }
+        
+        .breakdown-card.card-2 { border-color: #43e97b; }
+        .breakdown-card.card-2 h4 { color: #43e97b; }
+        .breakdown-card.card-2 .big-number { color: #43e97b; }
+        
+        .breakdown-card.card-3 { border-color: #4ecdc4; }
+        .breakdown-card.card-3 h4 { color: #4ecdc4; }
+        .breakdown-card.card-3 .big-number { color: #4ecdc4; }
+        
+        .breakdown-card.card-4 { border-color: #f093fb; }
+        .breakdown-card.card-4 h4 { color: #f093fb; }
+        .breakdown-card.card-4 .big-number { color: #f093fb; }
+/* ==========  STYLES ========== */
+.gaming-hub-header {
+    background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+    padding: 40px 30px;
+    text-align: center;
+    margin-bottom: 30px;
+    border-radius: 15px;
+}
+
+.gaming-hub-header h2 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    font-weight: 900;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.gaming-hub-header p {
+    font-size: 1.1em;
+    opacity: 0.95;
+    margin-bottom: 5px;
+}
+
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.game-card {
+    background: linear-gradient(135deg, rgba(20,20,50,0.9), rgba(30,30,60,0.9));
+    border-radius: 12px;
+    padding: 25px;
+    border: 2px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+}
+
+.game-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(102,126,234,0.4);
+    border-color: rgba(102,126,234,0.6);
+}
+
+.game-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+}
+
+.game-title {
+    font-size: 1.2em;
+    font-weight: 900;
+    margin-bottom: 10px;
+    color: #667eea;
+}
+
+.game-description {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.game-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85em;
+    opacity: 0.7;
+    padding: 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.play-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.play-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(67,233,123,0.5);
+}
+
+/* ========== END  STYLES ========== */
+
+      
+.copyright {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.85em;
+    color: #888;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+    position: static;    ← CHANGED
+    width: 100%;         ← ADD THIS
+    margin-top: 30px;    ← ADD THIS
+}
+/* ==========  STYLES ========== */
+.game-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 999999;  /* ✅ HIGHER z-index */
+  overflow-y: auto;
+  flex-align: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-modal.active {
+  display: flex !important;  /* ✅ Force flex display */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.game-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-content {
+  background: linear-gradient(135deg, #1a1a2e, #16213e);
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  border-radius: 20px;
+  padding: 40px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;  /* ✅ Add scrolling if needed */
+  z-index: 1000000;  /* ✅ Higher than background */
+}
+
+.game-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ff6b6b;
+    color: #fff;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.game-close:hover {
+    transform: scale(1.1);
+    background: #ff5252;
+}
+
+.question-container {
+    margin: 30px 0;
+}
+
+.question-text {
+    font-size: 1.3em;
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.options-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.option-btn {
+    background: rgba(255,255,255,0.08);
+    border: 2px solid rgba(102,126,234,0.3);
+    padding: 15px 20px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+}
+
+.option-btn:hover {
+    background: rgba(102,126,234,0.2);
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+.option-btn.correct {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    border-color: #43e97b;
+    color: #000;
+    font-weight: 800;
+}
+
+.option-btn.incorrect {
+    background: linear-gradient(135deg, #ff6b6b, #ff5252);
+    border-color: #ff6b6b;
+    color: #fff;
+    opacity: 0.6;
+}
+
+.option-btn:disabled {
+    cursor: not-allowed;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    transition: width 0.3s;
+}
+
+.score-display {
+    text-align: center;
+    font-size: 1.2em;
+    color: #43e97b;
+    font-weight: 900;
+    margin: 20px 0;
+}
+
+.next-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: 900;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+
+.next-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(102,126,234,0.5);
+}
+
+.game-result {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.result-score {
+    font-size: 4em;
+    font-weight: 900;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 20px 0;
+}
+
+.result-message {
+    font-size: 1.5em;
+    color: #fff;
+    margin: 20px 0;
+}
+
+.play-again-btn {
+    padding: 15px 40px;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1em;
+    font-weight: 900;
+    cursor: pointer;
+    margin: 10px;
+    transition: all 0.3s;
+}
+
+.play-again-btn:hover {
+    transform: scale(1.05);
+}
+/* ========== ENHANCED LIGHT MODE - COMPLETE PROFESSIONAL STYLING ========== */
+
+body.light-mode {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 40%, #e0e7f0 100%),
+                radial-gradient(circle at top right, rgba(245,87,108,0.15), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(102,126,234,0.12), transparent 45%);
+    color: #1a1a2e;
+}
+
+/* Navigation Bar */
+body.light-mode .nav-bar {
+    background: linear-gradient(90deg, #ffffff 0%, #f5f7fa 50%, #e8eaf6 100%);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+body.light-mode .nav-tab {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+/* Header */
+body.light-mode .header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+
+/* Stats Grid */
+body.light-mode .stat-box {
+    background: rgba(255,255,255,0.9);
+    border: 2px solid rgba(102,126,234,0.4);
+    color: #2d3436;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+body.light-mode .stat-label {
+    color: #4a5568;
+    font-weight: 800;
+}
+
+/* Filter Section */
+body.light-mode .filter-section {
+    background: rgba(255,255,255,0.7);
+    border-bottom: 1px solid rgba(102,126,234,0.3);
+}
+
+body.light-mode .filter-section label {
+    color: #2d3436;
+    font-weight: 800;
+}
+
+body.light-mode .filter-section input,
+body.light-mode .filter-section select {
+    background: rgba(255,255,255,0.95);
+    color: #2d3436;
+    border: 2px solid rgba(102,126,234,0.4);
+    font-weight: 700;
+}
+
+/* Timeline/Rotation Table */
+body.light-mode .timeline-wrapper {
+    background: rgba(255,255,255,0.6);
+}
+
+body.light-mode .timeline-table tbody tr {
+    border-bottom: 1px solid rgba(102,126,234,0.2);
+}
+
+body.light-mode .timeline-table tbody tr:hover {
+    background: rgba(102,126,234,0.15);
+}
+
+body.light-mode .timeline-table td.student-name {
+    background: rgba(245,247,250,0.98);
+    color: #2d3436;
+    border-right: 2px solid rgba(102,126,234,0.4);
+    font-weight: 900;
+}
+/* Fix Light Mode Week Headers - Make Text Clear */
+body.light-mode .timeline-table th {
+    background: linear-gradient(90deg, #5a6a8a, #6a5a8a, #9a6aaa) !important;
+    color: #fff !important;
+    font-weight: 900;
+    font-size: 1.1em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+body.light-mode .timeline-table th.student-col {
+    background: linear-gradient(90deg, #5a6a8a, #6a5a8a, #9a6aaa) !important;
+    color: #fff !important;
+    font-weight: 900;
+    box-shadow: inset 2px 0 8px rgba(0,0,0,0.15);
+}
+
+body.light-mode .week-label {
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.light-mode .week-dates {
+    color: #fff;
+    opacity: 0.95;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Section Boxes */
+body.light-mode .section-box {
+    background: rgba(255,255,255,0.85);
+    color: #2d3436;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+body.light-mode .section-box h2 {
+    color: #2d3436;
+    text-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    font-weight: 900;
+    font-size: 1.9em;
+}
+
+/* Assessment Boxes */
+body.light-mode .assessment-box {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid rgba(255,107,107,0.5);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+body.light-mode .assessment-box h3 {
+    color: #d63031;
+    text-shadow: 0 2px 4px rgba(214,48,49,0.3);
+    border-bottom: 3px solid rgba(214,48,49,0.4);
+    font-size: 1.3em;
+    font-weight: 900;
+}
+
+body.light-mode .assessment-item {
+    color: #2d3436;
+    font-weight: 700;
+    font-size: 1.1em;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+body.light-mode .checkmark {
+    color: #00b894;
+    font-weight: 900;
+    font-size: 1.2em;
+    text-shadow: 0 2px 4px rgba(0,184,148,0.4);
+}
+
+/* Tables */
+body.light-mode .table-box {
+    background: rgba(255,255,255,0.95);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+body.light-mode .table-box th {
+    background: rgba(214,48,49,0.3);
+    color: #2d3436;
+    font-weight: 900;
+    border-bottom: 3px solid #d63031;
+    font-size: 1.05em;
+}
+
+body.light-mode .table-box td {
+    color: #2d3436;
+    font-weight: 700;
+    font-size: 1.05em;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+body.light-mode .table-box tbody tr:hover {
+    background: rgba(255,107,107,0.15);
+}
+
+body.light-mode .table-box .date-highlight {
+    color: #d63031;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(214,48,49,0.3);
+}
+
+/* Student Cards */
+body.light-mode .student-card {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid rgba(102,126,234,0.5);
+    color: #2d3436;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+body.light-mode .student-card:hover {
+    background: rgba(255,255,255,1);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+}
+
+body.light-mode .student-card .name {
+    color: #2d3436;
+    font-weight: 900;
+    font-size: 1.05em;
+}
+
+body.light-mode .student-card .id {
+    color: #636e72;
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
+body.light-mode .student-card .phone {
+    color: #0984e3;
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
+body.light-mode .student-card .group {
+    color: #6c5ce7;
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
+/* Faculty Cards */
+body.light-mode .faculty-card {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid rgba(67,233,123,0.5);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+body.light-mode .faculty-card:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+}
+
+body.light-mode .faculty-card .title {
+    color: #00b894;
+    font-weight: 900;
+    font-size: 1.1em;
+    text-shadow: 0 2px 4px rgba(0,184,148,0.3);
+}
+
+body.light-mode .faculty-card .name {
+    color: #2d3436;
+    font-weight: 900;
+    font-size: 1.05em;
+}
+
+body.light-mode .faculty-card .designation {
+    color: #636e72;
+    font-weight: 700;
+    font-size: 0.95em;
+}
+
+body.light-mode .faculty-card .contact {
+    color: #636e72;
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+body.light-mode .faculty-card .email {
+    color: #0984e3;
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+/* Heatmap Section */
+body.light-mode .heatmap-section {
+    background: rgba(255,255,255,0.5);
+}
+/* ========== ROTATION CELLS - LIGHT MODE ========== */
+
+body.light-mode .rotation-cell {
+    color: #fff;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+body.light-mode .rotation-cell .rot-spec {
+    font-weight: 900;
+    font-size: 1.05em;
+}
+
+body.light-mode .rotation-cell .rot-hosp {
+    font-weight: 800;
+    font-size: 0.95em;
+    opacity: 0.95;
+}
+
+body.light-mode .rotation-cell:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+    transform: scale(1.1) translateY(-4px);
+}
+
+/* ========== ANALYTICS SECTION - LIGHT MODE FIX ========== */
+
+body.light-mode .heatmap-intro {
+    background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(240,147,251,0.2));
+    border-left: 5px solid #f093fb;
+    color: #2d3436;
+}
+
+body.light-mode .heatmap-intro h2 {
+    color: #d63e89;
+    font-weight: 900;
+    font-size: 1.8em;
+}
+
+body.light-mode .heatmap-intro p {
+    color: #2d3436;
+    font-weight: 700;
+    font-size: 1.05em;
+}
+
+body.light-mode .heatmap-intro .friday-note {
+    color: #00b894;
+    background: rgba(0,184,148,0.2);
+    border: 3px solid #00b894;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 900;
+    font-size: 1.2em;
+    text-shadow: 0 2px 4px rgba(0,184,148,0.3);
+}
+
+body.light-mode .heatmap-container {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,247,250,0.95));
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+/* ========== ENHANCED HEATMAP FOR LIGHT MODE ========== */
+
+body.light-mode .heatmap-table th,
+body.light-mode .heatmap-table td {
+    color: #1a1a2e;
+    font-weight: 900;
+    font-size: 1.1em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+body.light-mode .heatmap-table tbody tr td:first-child {
+    background: rgba(200,180,230,0.4);
+    color: #2d3436;
+    font-weight: 900;
+}
+
+/* Light mode heatmap cells - better contrast */
+body.light-mode .heatmap-cell-0 {
+    background: rgba(100,100,150,0.5);
+    color: #fff;
+    font-weight: 900;
+}
+
+body.light-mode .heatmap-cell-1-3 {
+    background: rgba(70,150,200,0.8);
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.light-mode .heatmap-cell-4-6 {
+    background: rgba(100,150,200,0.8);
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.light-mode .heatmap-cell-7-9 {
+    background: rgba(150,150,200,0.8);
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.light-mode .heatmap-cell-10-12 {
+    background: rgba(102,126,234,0.85);
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.light-mode .heatmap-cell-13-15 {
+    background: rgba(100,200,150,0.8);
+    color: #1a1a2e;
+    font-weight: 900;
+}
+
+body.light-mode .heatmap-cell-16-18 {
+    background: rgba(255,200,100,0.85);
+    color: #1a1a2e;
+    font-weight: 900;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+body.light-mode .heatmap-cell-19-21 {
+    background: rgba(255,150,100,0.9);
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+body.light-mode .heatmap-cell-22 {
+    background: rgba(255,107,107,0.9);
+    color: #fff;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+body.light-mode .heatmap-cell-66 {
+    background: rgba(67,233,123,0.9);
+    color: #1a1a2e;
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,184,148,0.3);
+}
+
+/* Legend in light mode */
+body.light-mode .heatmap-legend {
+    background: rgba(255,255,255,0.9);
+    color: #2d3436;
+}
+
+body.light-mode .legend-item {
+    background: rgba(255,255,255,0.95);
+    border: 2px solid rgba(102,126,234,0.3);
+    color: #2d3436;
+    font-weight: 700;
+}
+
+/*  */
+body.light-mode .gaming-hub-header {
+    background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+}
+
+
+body.light-mode .game-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,247,250,0.95));
+    border: 2px solid rgba(102,126,234,0.3);
+    color: #2d3436;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+body.light-mode .game-title {
+    color: #667eea;
+}
+
+body.light-mode .game-description {
+    color: #636e72;
+    font-weight: 600;
+}
+
+
+/*  */
+body.light-mode .game-modal {
+    background: rgba(255,255,255,0.97);
+}
+
+body.light-mode .game-content {
+    background: linear-gradient(135deg, #f5f7fa, #e8eaf6);
+    color: #2d3436;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+body.light-mode .question-text {
+    color: #2d3436;
+    font-weight: 900;
+}
+
+body.light-mode .option-btn {
+    background: rgba(255,255,255,0.9);
+    border: 2px solid rgba(102,126,234,0.4);
+    color: #2d3436;
+    font-weight: 700;
+}
+
+body.light-mode .option-btn:hover {
+    background: rgba(102,126,234,0.2);
+    border-color: #667eea;
+}
+
+body.light-mode .result-message {
+    color: #2d3436;
+    font-weight: 900;
+}
+
+/* Copyright */
+body.light-mode .copyright {
+    background: rgba(255,255,255,0.85);
+    color: #636e72;
+    border-top: 1px solid rgba(102,126,234,0.3);
+}
+
+/* Breakdown Cards */
+body.light-mode .breakdown-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,247,250,0.95));
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+body.light-mode .breakdown-card h4 {
+    font-weight: 900;
+}
+/* ========== THEME TOGGLE BUTTON ========== */
+
+.theme-toggle {
+    position: fixed;
+    top: 80px;
+    right: 25px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 1.5em;
+    cursor: pointer;
+    z-index: 10000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1) rotate(20deg);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+}
+
+body.light-mode .theme-toggle {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    border-color: rgba(0,0,0,0.2);
+}
+/* ========== SCROLL BUTTONS & PROGRESS BAR ========== */
+
+.scroll-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid rgba(102,126,234,0.5);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    font-size: 1.5em;
+    cursor: pointer;
+    font-weight: 900;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.scroll-btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 8px 25px rgba(102,126,234,0.6);
+    border-color: #667eea;
+}
+
+.scroll-btn:active {
+    transform: scale(0.95);
+}
+
+#timelineContainer {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+/* Progress Bar */
+.scroll-progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(102,126,234,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.scroll-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    width: 0%;
+    border-radius: 10px;
+    transition: width 0.1s ease;
+    box-shadow: 0 0 10px rgba(102,126,234,0.5);
+}
+
+/* Light mode */
+body.light-mode .scroll-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: rgba(102,126,234,0.6);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+body.light-mode .scroll-btn:hover {
+    box-shadow: 0 8px 25px rgba(102,126,234,0.5);
+}
+
+body.light-mode .scroll-progress-container {
+    background: rgba(102,126,234,0.15);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+body.light-mode .scroll-progress-bar {
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+}
+    </style>
+</head>
+<body>
+   <div class="nav-bar">
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">☀️</button>
+        <div class="nav-tab active" onclick="switchTab('rotation', this)">📋 Rotation Schedule</div>
+        <div class="nav-tab" onclick="switchTab('assessment', this)">📝 Assessment</div>
+        <div class="nav-tab" onclick="switchTab('dates', this)">📅 Important Dates</div>
+        <div class="nav-tab" onclick="switchTab('directory', this)">👥 Student Directory</div>
+        <div class="nav-tab" onclick="switchTab('faculty', this)">👨‍💼 Faculty</div>
+        <div class="nav-tab" onclick="switchTab('analytics', this)">📊 Analytics</div>
+    </div>
+
+    <div class="header">
+        <h1>🏥 DMU Batch 36 - Clinical Management System</h1>
+        <p>Year 5 Term 3 • December 8, 2025 - May 1, 2026 • 66 Students • 3 Divisions • 18 Weeks • </p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box"><div class="stat-number">66</div><div class="stat-label">Total Students</div></div>
+        <div class="stat-box"><div class="stat-number">18</div><div class="stat-label">Rotation Weeks</div></div>
+        <div class="stat-box"><div class="stat-number">22</div><div class="stat-label">Surgery</div></div>
+        <div class="stat-box"><div class="stat-number">22</div><div class="stat-label">Medicine</div></div>
+        <div class="stat-box"><div class="stat-number">22</div><div class="stat-label">PHC</div></div>
+        <div class="stat-box"><div class="stat-number">2000</div><div class="stat-label">Total Points</div></div>
+    </div>
+
+    <div class="container">
+        <!-- ROTATION TAB -->
+        <div id="rotation" class="tab-content active">
+            <div class="filter-section">
+                <label>🔍 Filter by Division:</label>
+                <select onchange="filterByDivision(this.value)">
+                    <option value="">Show All (66 Students)</option>
+                    <option value="surgery">Surgery (22)</option>
+                    <option value="medicine">Medicine (22)</option>
+                    <option value="phc">PHC (22)</option>
+                </select>
+                <label style="margin-left: auto;">🔎 Search by Name:</label>
+                <input type="text" placeholder="Enter student name..." onkeyup="searchByName(this.value)">
+            </div>
+          <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+    <button class="scroll-btn scroll-left" onclick="scrollTimeline('left')" title="Scroll Left">
+        ◀
+    </button>
+    
+    <div class="scroll-progress-container">
+        <div class="scroll-progress-bar" id="scrollProgress"></div>
+    </div>
+    
+    <button class="scroll-btn scroll-right" onclick="scrollTimeline('right')" title="Scroll Right">
+        ▶
+    </button>
+</div>
+
+<div class="timeline-wrapper" id="timelineContainer" style="flex: 1;">
+    <table class="timeline-table" id="timelineTable">
+                    <thead>
+                        <tr>
+                            <th class="student-col">Student Name</th>
+                            <th><div class="week-label">W1</div><div class="week-dates">Dec 08 – 12</div></th>
+                            <th><div class="week-label">W2</div><div class="week-dates">Dec 15 – 19</div></th>
+                            <th><div class="week-label">W3</div><div class="week-dates">Jan 05 – 09</div></th>
+                            <th><div class="week-label">W4</div><div class="week-dates">Jan 12 – 16</div></th>
+                            <th><div class="week-label">W5</div><div class="week-dates">Jan 19 – 23</div></th>
+                            <th><div class="week-label">W6</div><div class="week-dates">Jan 26 – 30</div></th>
+                            <th><div class="week-label">W7</div><div class="week-dates">Feb 02 – 06</div></th>
+                            <th><div class="week-label">W8</div><div class="week-dates">Feb 09 – 13</div></th>
+                            <th><div class="week-label">W9</div><div class="week-dates">Feb 16 – 20</div></th>
+                            <th><div class="week-label">W10</div><div class="week-dates">Feb 23 – 27</div></th>
+                            <th><div class="week-label">W11</div><div class="week-dates">Mar 02 – 06</div></th>
+                            <th><div class="week-label">W12</div><div class="week-dates">Mar 09 – 13</div></th>
+                            <th><div class="week-label">W13</div><div class="week-dates">Mar 16 – 20</div></th>
+                            <th><div class="week-label">W14</div><div class="week-dates">Mar 30 – Apr 03</div></th>
+                            <th><div class="week-label">W15</div><div class="week-dates">Apr 06 – 10</div></th>
+                            <th><div class="week-label">W16</div><div class="week-dates">Apr 13 – 17</div></th>
+                            <th><div class="week-label">W17</div><div class="week-dates">Apr 20 – 24</div></th>
+                            <th><div class="week-label">W18</div><div class="week-dates">Apr 27 – May 01</div></th>
+                        </tr>
+                    </thead>
+                    <tbody id="timelineBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ASSESSMENT TAB -->
+        <div id="assessment" class="tab-content">
+            <div class="content-section">
+                <div class="section-box assessment">
+                    <h2>📊 Surgery Division Assessment (Total: 360 points = 30%)</h2>
+                    <div class="assessment-grid">
+                        <div class="assessment-box">
+                            <h3>In-Course Assessment (15%)</h3>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Attendance: 60 pts (5%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Logbook (General Surgery): 60 pts (5%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Logbook (Emergency): 60 pts (5%)</div>
+                        </div>
+                        <div class="assessment-box">
+                            <h3>End of Rotation Exam (15%)</h3>
+                            <div class="assessment-item"><span class="checkmark">✓</span> MCQs: 50 pts (4%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> OSPE: 30 pts (2.5%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> OSCE: 100 pts (8.5%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box assessment">
+                    <h2>📊 Medicine Division Assessment (Total: 360 points = 30%)</h2>
+                    <div class="assessment-grid">
+                        <div class="assessment-box">
+                            <h3>In-Course Assessment (15%)</h3>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Attendance: 85 pts (7%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Mini-CEX (Workplace Based): 80 pts (6%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Case Log (Explorance): 30 pts (2%)</div>
+                        </div>
+                        <div class="assessment-box">
+                            <h3>End of Rotation Exam (15%)</h3>
+                            <div class="assessment-item"><span class="checkmark">✓</span> MCQs: 45 pts (4%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> OSPE: 20 pts (2%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> OSCE: 100 pts (9%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box assessment">
+                    <h2>📊 PHC Division Assessment (Total: 100 points = 30%)</h2>
+                    <div class="assessment-grid">
+                        <div class="assessment-box">
+                            <h3>In-Course Assessment (30%)</h3>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Attendance: 5 pts (5%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Case Presentation: 5 pts (5%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Assignment: 5 pts (5%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> Continuous Quiz: 15 pts (15%)</div>
+                        </div>
+                        <div class="assessment-box">
+                            <h3>End of Rotation Exam (70%)</h3>
+                            <div class="assessment-item"><span class="checkmark">✓</span> MCQs: 20 pts (20%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> OSPE: 10 pts (10%)</div>
+                            <div class="assessment-item"><span class="checkmark">✓</span> OSCE: 40 pts (40%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box assessment">
+                    <h2>🏆 Final Exit Exam Blueprint (Total: 840 points = 70%)</h2>
+                    <div class="table-box">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Division</th>
+                                    <th>MCQs</th>
+                                    <th>OSPE</th>
+                                    <th>OSCE</th>
+                                    <th>DOCE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Medicine</strong></td>
+                                    <td>55 Questions</td>
+                                    <td>5 Stations</td>
+                                    <td>4 Stations</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Surgery</strong></td>
+                                    <td>55 Questions</td>
+                                    <td>5 Stations</td>
+                                    <td>4 Stations</td>
+                                    <td>5 Cases</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>PHC</strong></td>
+                                    <td>40 Questions</td>
+                                    <td>5 Stations</td>
+                                    <td>4 Stations</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td><strong>TOTAL</strong></td>
+                                    <td><strong>150 Questions</strong></td>
+                                    <td><strong>15 Stations</strong></td>
+                                    <td><strong>12 Stations</strong></td>
+                                    <td><strong>5 Cases</strong></td>
+                                </tr>
+                                <tr class="marks-row">
+                                    <td><strong>Total Marks</strong></td>
+                                    <td><strong>180 marks</strong></td>
+                                    <td><strong>90 marks</strong></td>
+                                    <td><strong>150 marks</strong></td>
+                                    <td><strong>420 marks</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="breakdown-cards">
+                        <div class="breakdown-card card-1">
+                            <h4>Total Embedded Assessment</h4>
+                            <div class="big-number">360 pts</div>
+                            <div class="sub-text">(30%)</div>
+                            <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.8;">All three rotation assessments</div>
+                        </div>
+                        <div class="breakdown-card card-2">
+                            <h4>Final Exit Exam</h4>
+                            <div class="big-number">840 pts</div>
+                            <div class="sub-text">(70%)</div>
+                            <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.8;">Comprehensive clinical exam</div>
+                        </div>
+                        <div class="breakdown-card card-3">
+                            <h4>Research & Logbook</h4>
+                            <div class="big-number">200 pts</div>
+                            <div class="sub-text">Additional</div>
+                            <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.8;">Additional requirements</div>
+                        </div>
+                        <div class="breakdown-card card-4">
+                            <h4>Total Clinical Phase</h4>
+                            <div class="big-number">2000 pts</div>
+                            <div class="sub-text">100%</div>
+                            <div style="margin-top: 10px; font-size: 0.8em; opacity: 0.8;">Including Peds (300) & OBGYN (300)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DATES TAB -->
+        <div id="dates" class="tab-content">
+            <div class="content-section">
+                <div class="section-box dates">
+                    <h2>📅 Term III Clinical Timeline (18 Weeks)</h2>
+                    <div class="table-box">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date(s)</th>
+                                    <th>Duration</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="date-highlight">📌 Rotation Start</td>
+                                    <td>Monday, December 8, 2025</td>
+                                    <td>-</td>
+                                    <td>All divisions begin clinical rotations</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">🎄 Winter Break</td>
+                                    <td>December 22, 2025 - January 2, 2026</td>
+                                    <td>1 week</td>
+                                    <td>No clinical rotations</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">🎉 Spring Break + Eid</td>
+                                    <td>March 23-27, 2026</td>
+                                    <td>1 week</td>
+                                    <td>No clinical rotations</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">✅ Total Weeks</td>
+                                    <td>18 active weeks</td>
+                                    <td>-</td>
+                                    <td>Dec 8 - May 8, 2026</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">🏫 Friday Academic Days</td>
+                                    <td>Every Friday</td>
+                                    <td>-</td>
+                                    <td>All 66 students on DMU Campus</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section-box dates">
+                    <h2>📝 End of Rotation Exam Schedule</h2>
+                    <div class="table-box">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th>Division</th>
+                                    <th>Exam Type</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="date-highlight">09 Apr 2026</td>
+                                    <td>Thursday</td>
+                                    <td>PHC</td>
+                                    <td>MCQs & OSPE</td>
+                                    <td>11:00 AM</td>
+                                    <td>Exam Hall 108</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">12 Apr 2026</td>
+                                    <td>Friday</td>
+                                    <td>PHC</td>
+                                    <td>OSCE</td>
+                                    <td>9:00 AM</td>
+                                    <td>Simulation Center - LTC</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">21 Apr 2026</td>
+                                    <td>Tueday</td>
+                                    <td>Surgery & Medicine</td>
+                                    <td>MCQs & OSPE</td>
+                                    <td>9:00 AM</td>
+                                    <td>Exam Hall 108</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">22 Apr 2026r</td>
+                                    <td>Wednesday</td>
+                                    <td>Surgery & Medicine</td>
+                                    <td>Clinical Exam</td>
+                                    <td>9:00 AM</td>
+                                    <td>Rashid Hospital</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="section-box dates">
+                    <h2>🏆 Final Exit Exam Schedule (Week of 9-17 May 2026)</h2>
+                    <div class="table-box">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Day</th>
+                                    <th>Exam Type</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="date-highlight">09 May 2026</td>
+                                    <td>Saturday</td>
+                                    <td>OSCE (Clinical)</td>
+                                    <td>8:00 AM</td>
+                                    <td>Rashid Hospital OPD</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">11 May 2026</td>
+                                    <td>Monday</td>
+                                    <td>MCQs</td>
+                                    <td>9:00 AM</td>
+                                    <td>Exam Hall 108</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">13 May 2026</td>
+                                    <td>Wednesday</td>
+                                    <td>OSPE</td>
+                                    <td>9:00 AM</td>
+                                    <td>Exam Hall 108</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">16 May 2026</td>
+                                    <td>Saturday</td>
+                                    <td>DOCE (Clinical)</td>
+                                    <td>8:00 AM</td>
+                                    <td>Rashid Hospital OPD</td>
+                                </tr>
+                                <tr>
+                                    <td class="date-highlight">17 May 2026</td>
+                                    <td>Sunday</td>
+                                    <td>DOCE (Clinical)</td>
+                                    <td>8:00 AM</td>
+                                    <td>Rashid Hospital OPD</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STUDENT DIRECTORY TAB -->
+        <div id="directory" class="tab-content">
+            <div class="filter-section">
+                <label>🔍 Search Student:</label>
+                <input type="text" placeholder="Name, ID, or Phone..." onkeyup="filterDirectory(this.value)">
+                <label style="margin-left: 20px;">Division:</label>
+                <select onchange="filterByDivDir(this.value)">
+                    <option value="">All (66)</option>
+                    <option value="surgery">Surgery (22)</option>
+                    <option value="medicine">Medicine (22)</option>
+                    <option value="phc">PHC (22)</option>
+                </select>
+            </div>
+            <div class="content-section">
+                <div class="directory-grid" id="directoryGrid"></div>
+            </div>
+        </div>
+
+        <!-- FACULTY TAB -->
+        <div id="faculty" class="tab-content">
+            <div class="filter-section">
+                <label>🔍 Search Faculty:</label>
+                <input type="text" placeholder="Name or designation..." onkeyup="filterFaculty(this.value)">
+                <label style="margin-left: 20px;">Department:</label>
+                <select onchange="filterByDept(this.value)">
+                    <option value="">All Staff</option>
+                    <option value="surgery">Surgery Division</option>
+                    <option value="medicine">Medicine Division</option>
+                    <option value="phc">PHC Division</option>
+                    <option value="obs">Obs & Gyn</option>
+                    <option value="peds">Pediatrics</option>
+                </select>
+            </div>
+            <div class="content-section">
+                <div class="faculty-grid" id="facultyGrid"></div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS TAB -->
+        <div id="analytics" class="tab-content">
+            <div class="heatmap-section">
+                <div class="heatmap-intro">
+                    <h2>🔥 Student Distribution Heatmap - Weekly Clinical Site Allocation</h2>
+                    <p>Visual representation of student count per clinical site across 18 weeks (excluding holidays). The heatmap uses color gradients to show distribution intensity.</p>
+                    <div class="friday-note">🎓 EVERY FRIDAY: All 66 students are on DMU Campus for academic sessions, grand rounds, case conferences, and self-directed learning.</div>
+                </div>
+                
+                <div class="heatmap-container">
+                    <table class="heatmap-table">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 180px;">Clinical Site</th>
+                                <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th><th>W6</th><th>W7</th><th>W8</th><th>W9</th><th>W10</th><th>W11</th><th>W12</th><th>W13</th><th>W14</th><th>W15</th><th>W16</th><th>W17</th><th>W18</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Rashid Hospital</td>
+                                <td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-19-21">27</td><td class="heatmap-cell-22">36</td><td class="heatmap-cell-22">32</td><td class="heatmap-cell-19-21">25</td><td class="heatmap-cell-22">31</td><td class="heatmap-cell-19-21">28</td><td class="heatmap-cell-19-21">28</td><td class="heatmap-cell-22">31</td><td class="heatmap-cell-22">42</td><td class="heatmap-cell-22">42</td><td class="heatmap-cell-22">42</td><td class="heatmap-cell-22">42</td>
+                            </tr>
+                            <tr>
+                                <td>Dubai Hospital</td>
+                                <td class="heatmap-cell-16-18">18</td><td class="heatmap-cell-16-18">18</td><td class="heatmap-cell-13-15">12</td><td class="heatmap-cell-16-18">18</td><td class="heatmap-cell-16-18">18</td><td class="heatmap-cell-16-18">18</td><td class="heatmap-cell-13-15">12</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-10-12">13</td><td class="heatmap-cell-16-18">20</td><td class="heatmap-cell-13-15">14</td><td class="heatmap-cell-16-18">17</td><td class="heatmap-cell-16-18">17</td><td class="heatmap-cell-13-15">14</td><td class="heatmap-cell-19-21">25</td><td class="heatmap-cell-19-21">25</td><td class="heatmap-cell-19-21">25</td><td class="heatmap-cell-16-18">18</td>
+                            </tr>
+                            <tr>
+                                <td>Latifa Hospital</td>
+                                <td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-4-6">3</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-7-9">7</td>
+                            </tr>
+                            <tr>
+                                <td>Al Twar PHC</td>
+                                <td class="heatmap-cell-0">0</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td>
+                            </tr>
+                            <tr>
+                                <td>Al Khawaneej PHC</td>
+                                <td class="heatmap-cell-0">0</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-1-3">2</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td>
+                            </tr>
+                            <tr>
+                                <td>Nadd Al Hammar PHC</td>
+                                <td class="heatmap-cell-0">0</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td>
+                            </tr>
+                            <tr>
+                                <td>Al Mizhar PHC</td>
+                                <td class="heatmap-cell-0">0</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-1-3">5</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-7-9">6</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td>
+                            </tr>
+                            <tr>
+                                <td>Al Qusais PHC</td>
+                                <td class="heatmap-cell-0">0</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-1-3">3</td><td class="heatmap-cell-1-3">3</td><td class="heatmap-cell-1-3">3</td><td class="heatmap-cell-1-3">3</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-4-6">4</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td><td class="heatmap-cell-0">0</td>
+                            </tr>
+                            <tr style="background: rgba(100,200,150,0.15);">
+                                <td style="font-weight: 900; color: #43e97b;">DMU Campus (Friday)</td>
+                                <td class="heatmap-cell-22">22</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-22">22</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td><td class="heatmap-cell-66">66</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="heatmap-legend">
+                    <div class="legend-item"><div class="legend-box heatmap-cell-0"></div> <span>0</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-1-3"></div> <span>1-3</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-4-6"></div> <span>4-6</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-7-9"></div> <span>7-9</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-10-12"></div> <span>10-12</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-13-15"></div> <span>13-15</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-16-18"></div> <span>16-18</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-19-21"></div> <span>19-21</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-22"></div> <span>22+</span></div>
+                    <div class="legend-item"><div class="legend-box heatmap-cell-66"></div> <span style="font-weight: 900;">Friday Campus (66)</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <div class="copyright">
+        © 2026 DMU Batch 36 Clinical Management System | Designed & Maintained by Ms. Naima El-Khalfi, Senior Clinical Admin Officer | Dubai Medical University College of Medicine </div>
+</body>
+</html>
+    <script>
+        const phoneNumbers = {
+            'Sarah Salman Siddiqui': '971585314558',
+            'Rehaam Fathima': '971509109671',
+            'Iraj Fatima': '971569845636',
+            'Yusra Jamil': '971547665749',
+            'Asiya Mubeen': '971544741136',
+            'Afrah Jaffarsadiq': '971564340330',
+            'Amina Abdul Gafoor': '971562535645',
+            'Fiza Halima': '971567285821',
+            'Hafsa Maryam': '971561362640',
+            'Asna Ayoob': '971508549416',
+            'Sowdo Mohamud Ali': '971507468241',
+            'Sarah Ali Abdulla Ali Alyammahi': '971565892066',
+            'Rima Alvavi': '971503381082',
+            'Rooa Fayez Saeed Ahmad Bin Kuwaiyer': '971501339287',
+            'Tasnime Brinsi': '971567509393',
+            'Shouq Abdulwahed Juma M Almuwalekh': '971567280082',
+            'Shamma Abdulla Mohamed Abdelqader Ahli': '971509908399',
+            'Ghadi Hafiz Awad Fadl Alla': '971503551333',
+            'Zainab Muhanad Abdulrahman AlKasser': '971561973330',
+            'Ola Ali Abd Elrahim Osman': '971545326789',
+            'Samira Zoreik': '971558992842',
+            'Zaha Zainab Manzoor': '971589118646',
+            'Ola Mansour Tarkhoun': '971551806013',
+            'Maryam Omar Owaid Al-Tamo': '971507271261',
+            'Laian Mohamad Hamod': '971507342067',
+            'Hadil W. Y. Alswaitti': '971556705511',
+            'Hafsa Amina Redouane': '971503080586',
+            'Lian Wathek Arabi Katbi': '971501748599',
+            'Rufaida Osama Osman Mohamed': '971562510787',
+            'Leen Ibrahim Sabbagh': '971569275799',
+            'Maryam Munzer Manzalgi': '971506045663',
+            'Rokia Malahifci': '971523698868',
+            'Sana Ahmed': '971585314558',
+            'Dalia Diary Abd Abdulrahman': '971503817547',
+            'Fatma Badr Ahmad Abdulhamid Alzarooni': '971505035305',
+            'Fatma Ahmed Hamza Ramadan Al-Ali': '971509032255',
+            'Arwa Majed Saeed Majed Almesafri': '971544474771',
+            'Najiba Mohammed Hasan Mahmoud Balas': '971509722284',
+            'Sarah Ahmed Fathi Muhsen': '971507627000',
+            'Ayisha Hassan Abdulrahman Saleh Alabdooli': '971544023423',
+            'Aya Jamal Eid Abdelhadi': '971506851104',
+            'Rauda Ahmed Mohammed Obaid Aldhaheri': '971506670704',
+            'Shaikha Abdulaziz Rashed Bualhamam Alnuaimi': '971506867139',
+            'Mariam D/O Mohamed Ismail': '971503531492',
+            'Fatima Alzahra Nassar': '971566317744',
+            'Omnia Hamad Elsadig Suliman': '971566611175',
+            'Aycha Sleiman Khaled Zaher': '971569449046',
+            'Laweezah Arif Zulquarnain': '971567869077',
+            'Fathima Samreen': '971552262277',
+            'Fatma Abdulla Rahma Ali Hassan': '971564770074',
+            'Ameerah Rashed Ali Binsaadan Kamzari': '971503901121',
+            'Aysha Khaled Mueen Malalla Alhosani': '971504977565',
+            'Rashad Shamil Ghanim Hussain Alabo': '971502009417',
+            'Fatma Ahmad Abdulaziz Abdulrahim Aljaziri': '971525585252',
+            'Afra Abdulla Ateeq Bin Dayoul Aldarmaki': '971562125155',
+            'Sadhana Parveen Nazir Ahamed Khan': '971557026860',
+            'Reda Iqbal': '971556858944',
+            'Faaizah Ahmed': '971527672488',
+            'Umaima Syed Abdul Subhan': '971522539123',
+            'Fathimathul Henna Parambath': '971507499056',
+            'Afsheen Azhar': '971504883782',
+            'Zainab Abdul Hamid': '971543187192',
+            'Saniya Shaukat Merchant': '971525890642',
+            'Naya Isam Ali Al Mikhi': '971566362691',
+            'Maryam Musalam Abdulkarem Ba Musallam': '971509622204',
+            'Dalal Majid A Alsani': '971554217790'
+        };
+
+        const students = {
+            surgery: [
+                {name:'Sarah Salman Siddiqui', id:'20210154', group:'G-I', div:'Surgery', rot:['Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital']},
+                {name:'Rehaam Fathima', id:'20210145', group:'G-I', div:'Surgery', rot:['Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital']},
+                {name:'Iraj Fatima', id:'20210128', group:'G-I', div:'Surgery', rot:['Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital']},
+                {name:'Yusra Jamil', id:'20210161', group:'G-I', div:'Surgery', rot:['Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital']},
+                {name:'Asiya Mubeen', id:'20210107', group:'G-I', div:'Surgery', rot:['Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital']},
+                {name:'Afrah Jaffarsadiq', id:'20210102', group:'G-I', div:'Surgery', rot:['Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital']},
+                {name:'Amina Abdul Gafoor', id:'20210105', group:'G-II', div:'Surgery', rot:['Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital']},
+                {name:'Fiza Halima', id:'20210123', group:'G-II', div:'Surgery', rot:['Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital']},
+                {name:'Hafsa Maryam', id:'20210126', group:'G-II', div:'Surgery', rot:['Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital']},
+                {name:'Asna Ayoob', id:'20210108', group:'G-II', div:'Surgery', rot:['Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital']},
+                {name:'Sowdo Mohamud Ali', id:'20210157', group:'G-II', div:'Surgery', rot:['Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital']},
+                {name:'Sarah Ali Abdulla Ali Alyammahi', id:'20210153', group:'H-III', div:'Surgery', rot:['A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg|Dubai Hospital']},
+                {name:'Rima Alvavi', id:'20210146', group:'H-III', div:'Surgery', rot:['A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg|Dubai Hospital']},
+                {name:'Rooa Fayez Saeed Ahmad Bin Kuwaiyer', id:'20210147', group:'H-III', div:'Surgery', rot:['A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg|Dubai Hospital']},
+                {name:'Tasnime Brinsi', id:'20210159', group:'H-III', div:'Surgery', rot:['A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg|Dubai Hospital']},
+                {name:'Shouq Abdulwahed Juma M Almuwalekh', id:'20210156', group:'H-III', div:'Surgery', rot:['A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Gen Surg 4-Spec|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg|Dubai Hospital']},
+                {name:'Shamma Abdulla Mohamed Abdelqader Ahli', id:'20210155', group:'H-IV', div:'Surgery', rot:['A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital']},
+                {name:'Ghadi Hafiz Awad Fadl Alla', id:'20200120', group:'H-IV', div:'Surgery', rot:['A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital']},
+                {name:'Zainab Muhanad Abdulrahman AlKasser', id:'20200170', group:'H-IV', div:'Surgery', rot:['A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital']},
+                {name:'Ola Ali Abd Elrahim Osman', id:'20200141', group:'H-IV', div:'Surgery', rot:['A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital']},
+                {name:'Samira Zoreik', id:'20200150', group:'H-IV', div:'Surgery', rot:['A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital']},
+                {name:'Zaha Zainab Manzoor', id:'20200168', group:'H-IV', div:'Surgery', rot:['A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','A&E Afternoon|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','Radiology & Anesthesia|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','A&E Morning|Rashid Hospital','Gen Surg|Dubai Hospital','Gen Surg|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Uro, Ortho|Dubai Hospital','Gen Surg, Cardio-Thor|Dubai Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Vasc|Rashid Hospital','Gen Surg, Ortho, Neuro|Rashid Hospital','Gen Surg, Ortho, Plastic|Rashid Hospital','Gen Surg, Ortho, Thoracic|Rashid Hospital']}
+            ],
+            medicine: [
+                {name:'Ola Mansour Tarkhoun', id:'20210163', group:'I-V', div:'Medicine', rot:['Rheum|Dubai Hospital','Int Med|Dubai Hospital','Thalass|Latifa Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Haem|Dubai Hospital','Nephro|Dubai Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Crit Care|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Psychiatry,Private Hospital']},
+                {name:'Maryam Omar Owaid Al-Tamo', id:'20210136', group:'I-V', div:'Medicine', rot:['Rheum|Dubai Hospital','Int Med|Dubai Hospital','Thalass|Latifa Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Haem|Dubai Hospital','Nephro|Dubai Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Crit Care|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Psychiatry,Private Hospital']},
+                {name:'Laian Mohamad Hamod', id:'20210129', group:'I-V', div:'Medicine', rot:['Rheum|Dubai Hospital','Int Med|Dubai Hospital','Thalass|Latifa Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Haem|Dubai Hospital','Nephro|Dubai Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Crit Care|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Psychiatry,Private Hospital']},
+                {name:'Hadil W. Y. Alswaitti', id:'20210124', group:'I-V', div:'Medicine', rot:['Rheum|Dubai Hospital','Int Med|Dubai Hospital','Thalass|Latifa Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Haem|Dubai Hospital','Nephro|Dubai Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Crit Care|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Psychiatry,Private Hospital']},
+                {name:'Hafsa Amina Redouane', id:'20210125', group:'I-V', div:'Medicine', rot:['Rheum|Dubai Hospital','Int Med|Dubai Hospital','Thalass|Latifa Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Haem|Dubai Hospital','Nephro|Dubai Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Crit Care|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Psychiatry,Private Hospital']},
+                {name:'Lian Wathek Arabi Katbi', id:'20210133', group:'I-V', div:'Medicine', rot:['Rheum|Dubai Hospital','Int Med|Dubai Hospital','Thalass|Latifa Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Haem|Dubai Hospital','Nephro|Dubai Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Crit Care|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Psychiatry,Private Hospital']},
+                {name:'Rufaida Osama Osman Mohamed', id:'20210148', group:'I-VI', div:'Medicine', rot:['Int Med|Dubai Hospital','Rheum|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Thalass|Latifa Hospital','Derm|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Psychiatry,Private Hospital','Crit Care|Rashid Hospital']},
+                {name:'Leen Ibrahim Sabbagh', id:'20210131', group:'I-VI', div:'Medicine', rot:['Int Med|Dubai Hospital','Rheum|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Thalass|Latifa Hospital','Derm|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Psychiatry,Private Hospital','Crit Care|Rashid Hospital']},
+                {name:'Maryam Munzer Manzalgi', id:'20210164', group:'I-VI', div:'Medicine', rot:['Int Med|Dubai Hospital','Rheum|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Thalass|Latifa Hospital','Derm|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Psychiatry,Private Hospital','Crit Care|Rashid Hospital']},
+                {name:'Rokia Malahifci', id:'20210166', group:'I-VI', div:'Medicine', rot:['Int Med|Dubai Hospital','Rheum|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Thalass|Latifa Hospital','Derm|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Psychiatry,Private Hospital','Crit Care|Rashid Hospital']},
+                {name:'Sana Ahmed', id:'20210150', group:'I-VI', div:'Medicine', rot:['Int Med|Dubai Hospital','Rheum|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Thalass|Latifa Hospital','Derm|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Psychiatry,Private Hospital','Crit Care|Rashid Hospital']},
+                {name:'Dalia Diary Abd Abdulrahman', id:'20210114', group:'I-VI', div:'Medicine', rot:['Int Med|Dubai Hospital','Rheum|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Endo|Dubai Hospital','Thalass|Latifa Hospital','Derm|Rashid Hospital','Neuro|Rashid Hospital','Int Med|Rashid Hospital','Int Med|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Pulmo|Rashid Hospital','Cardio|Rashid Hospital','Infect|Rashid Hospital','Psychiatry,Private Hospital','Crit Care|Rashid Hospital']},
+                {name:'Fatma Badr Ahmad Abdulhamid Alzarooni', id:'20210122', group:'J-VII', div:'Medicine', rot:['Int Med|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Cardio|Rashid Hospital','Crit Care|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Thalass|Latifa Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Rheum|Rashid Hospital','Endo|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Psychiatry,Private Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital']},
+                {name:'Fatma Ahmed Hamza Ramadan Al-Ali', id:'20210121', group:'J-VII', div:'Medicine', rot:['Int Med|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Cardio|Rashid Hospital','Crit Care|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Thalass|Latifa Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Rheum|Rashid Hospital','Endo|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Psychiatry,Private Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital']},
+                {name:'Arwa Majed Saeed Majed Almesafri', id:'20210106', group:'J-VII', div:'Medicine', rot:['Int Med|Rashid Hospital','Infect|Rashid Hospital','Derm|Rashid Hospital','Cardio|Rashid Hospital','Crit Care|Rashid Hospital','Digest|Rashid Hospital','Digest|Rashid Hospital','Thalass|Latifa Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Rheum|Rashid Hospital','Endo|Dubai Hospital','Nephro|Dubai Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Psychiatry,Private Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital']},
+                {name:'Najiba Mohammed Hasan Mahmoud Balas', id:'20210139', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']},
+                {name:'Sarah Ahmed Fathi Muhsen', id:'20210151', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']},
+                {name:'Ayisha Hassan Abdulrahman Saleh Alabdooli', id:'20210111', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']},
+                {name:'Aya Jamal Eid Abdelhadi', id:'20210109', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']},
+                {name:'Rauda Ahmed Mohammed Obaid Aldhaheri', id:'20200144', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']},
+                {name:'Shaikha Abdulaziz Rashed Bualhamam Alnuaimi', id:'20200154', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']},
+                {name:'Mariam D/O Mohamed Ismail', id:'20210135', group:'J-VIII', div:'Medicine', rot:['Digest|Rashid Hospital','Digest|Rashid Hospital','Int Med|Rashid Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','Cardio|Rashid Hospital','Derm|Rashid Hospital','Infect|Rashid Hospital','Crit Care|Rashid Hospital','Nephro|Dubai Hospital','Endo|Dubai Hospital','Int Med|Dubai Hospital','Int Med|Dubai Hospital','Rheum|Dubai Hospital','Psychiatry,Private Hospital','Haem|Dubai Hospital','Cardio|Dubai Hospital','Thalass|Latifa Hospital']}
+            ],
+            phc: [
+                {name:'Fatima Alzahra Nassar', id:'20210119', group:'K-IX 1A', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|DMU Campus','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','ENT|Dubai Hospital','Ophtha|Dubai Hospital']},
+                {name:'Omnia Hamad Elsadig Suliman', id:'20230101', group:'K-IX 1A', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|DMU Campus','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','ENT|Dubai Hospital','Ophtha|Dubai Hospital']},
+                {name:'Aycha Sleiman Khaled Zaher', id:'20210110', group:'K-IX 1B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Laweezah Arif Zulquarnain', id:'20210130', group:'K-IX 1B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Fathima Samreen', id:'20210118', group:'K-IX 1B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Fatma Abdulla Rahma Ali Hassan', id:'20210120', group:'K-X 2A', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|DMU Campus','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','ENT|Dubai Hospital','Ophtha|Dubai Hospital']},
+                {name:'Ameerah Rashed Ali Binsaadan Kamzari', id:'20210104', group:'K-X 2A', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|DMU Campus','Pulmo|Rashid Hospital','Neuro|Rashid Hospital','ENT|Dubai Hospital','Ophtha|Dubai Hospital']},
+                {name:'Aysha Khaled Mueen Malalla Alhosani', id:'20210112', group:'K-X 2B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Rashad Shamil Ghanim Hussain Alabo', id:'20230103', group:'K-X 2B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Fatma Ahmad Abdulaziz Abdulrahim Aljaziri', id:'20200118', group:'K-X 2B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Afra Abdulla Ateeq Bin Dayoul Aldarmaki', id:'20210101', group:'K-X 2B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|DMU Campus','Neuro|Rashid Hospital','Pulmo|Rashid Hospital','Ophtha|Dubai Hospital','ENT|Dubai Hospital']},
+                {name:'Sadhana Parveen Nazir Ahamed Khan', id:'20210149', group:'L-XI 3', div:'PHC', rot:['Academic|DMU Campus','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|DMU Campus','ENT|Dubai Hospital','Ophtha|Dubai Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital']},
+                {name:'Reda Iqbal', id:'20210144', group:'L-XI 3', div:'PHC', rot:['Academic|DMU Campus','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|DMU Campus','ENT|Dubai Hospital','Ophtha|Dubai Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital']},
+                {name:'Faaizah Ahmed', id:'20210116', group:'L-XI 3', div:'PHC', rot:['Academic|DMU Campus','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|DMU Campus','ENT|Dubai Hospital','Ophtha|Dubai Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital']},
+                {name:'Umaima Syed Abdul Subhan', id:'20210160', group:'L-XI 3', div:'PHC', rot:['Academic|DMU Campus','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|DMU Campus','ENT|Dubai Hospital','Ophtha|Dubai Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital']},
+                {name:'Fathimathul Henna Parambath', id:'20210117', group:'L-XI 3', div:'PHC', rot:['Academic|DMU Campus','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|Al Twar PHC','PHC|DMU Campus','ENT|Dubai Hospital','Ophtha|Dubai Hospital','Pulmo|Rashid Hospital','Neuro|Rashid Hospital']},
+                {name:'Afsheen Azhar', id:'20210103', group:'L-XII 4A', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|DMU Campus','Ophtha|Dubai Hospital','ENT|Dubai Hospital','Neuro|Rashid Hospital','Pulmo|Rashid Hospital']},
+                {name:'Zainab Abdul Hamid', id:'20210165', group:'L-XII 4A', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Al Khawaneej PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|DMU Campus','Ophtha|Dubai Hospital','ENT|Dubai Hospital','Neuro|Rashid Hospital','Pulmo|Rashid Hospital']},
+                {name:'Saniya Shaukat Merchant', id:'20200151', group:'L-XII 4B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|DMU Campus','Ophtha|Dubai Hospital','ENT|Dubai Hospital','Neuro|Rashid Hospital','Pulmo|Rashid Hospital']},
+                {name:'Naya Isam Ali Al Mikhi', id:'20210140', group:'L-XII 4B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|DMU Campus','Ophtha|Dubai Hospital','ENT|Dubai Hospital','Neuro|Rashid Hospital','Pulmo|Rashid Hospital']},
+                {name:'Maryam Musalam Abdulkarem Ba Musallam', id:'20210168', group:'L-XII 4B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|DMU Campus','Ophtha|Dubai Hospital','ENT|Dubai Hospital','Neuro|Rashid Hospital','Pulmo|Rashid Hospital']},
+                {name:'Dalal Majid A Alsani', id:'20210113', group:'L-XII 4B', div:'PHC', rot:['Academic|DMU Campus','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Al Qusais PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Nadd Al Hammar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|Al Mizhar PHC','PHC|DMU Campus','Ophtha|Dubai Hospital','ENT|Dubai Hospital','Neuro|Rashid Hospital','Pulmo|Rashid Hospital']}
+            ]
+        };
+
+        const faculty = [
+            {name: 'Prof. Yousif El Tayeb', title: '👑 Dean & Chair', designation: 'Clinical Sciences Department', dept: 'leadership', email: 'yeltayeb@dmcg.edu', phone: '0097142120505'},
+            {name: 'Prof. Ali El-Houni', title: '🏥 Head of Internal Medicine', designation: 'Medicine Division', dept: 'medicine', email: 'dr.ali@dmcg.edu', phone: '0097142120562'},
+            {name: 'Dr. Sami Mohamed', title: '👨‍⚕️ Assistant Professor', designation: 'Medicine Division', dept: 'medicine', email: 'dr.sami@dmcg.edu', phone: '0097142120602'},
+            {name: 'Dr. Momna Basher', title: '👩‍⚕️ Academic Teaching Assistant', designation: 'Medicine Clinical Coordinator', dept: 'medicine', email: 'dr.momna@dmcg.edu', phone: '0097142120566'},
+            {name: 'Dr. Manal Khan', title: '🏥 Clinical Coordinator', designation: 'Rashid Hospital (Medicine)', dept: 'medicine', email: 'dr.manal@dmcg.edu', phone: '00971563607741'},
+            {name: 'Dr. Alizaah Khan', title: '👩‍⚕️ Teaching Assistant', designation: 'Dubai Hospital (Medicine)', dept: 'medicine', email: 'dr.alizah@dmcg.edu', phone: '00971508803107'},
+            {name: 'Prof. Samia Farghaly', title: '🏥 Head of PHC Division', designation: 'PHC Division', dept: 'phc', email: 'Prof.Samia@dmcg.edu', phone: '0097142120561'},
+            {name: 'Dr. Rawan Mehenna', title: '👨‍⚕️ Academic Teaching Assistant', designation: 'PHC Clinical Coordinator', dept: 'phc', email: 'dr.rawan@dmcg.edu', phone: '0097142120586'},
+            {name: 'Ms. Eman Mostafa Mohamed Melegi', title: '👩‍💼 Clinical Admin Officer', designation: 'PHC Division', dept: 'phc', email: 'eman.m@dmcg.edu', phone: '0097142120571'},
+            {name: 'Dr.Tayfor Mohammed', title: '👨‍⚕️ Academic Teaching Assistant', designation: 'Surgery Division', dept: 'surgery', email: 'Tayfor.Mohammed@dmu.ae', phone: '0097142120530'},
+            {name: 'Ms. Naima El Khalfi', title: '👩‍💼 Senior Clinical Admin Officer', designation: 'Surgery Division', dept: 'surgery', email: 'Naima@dmcg.edu', phone: '0097142120573'},
+            {name: 'Dr. Ruth Cockerill', title: '🏥 Head of Obs & Gyn', designation: 'Obs & Gyn Division', dept: 'obs', email: 'dr.ruth@dmcg.edu', phone: 'NA'},
+            {name: 'Dr. Rawdha Ahmed', title: '👩‍⚕️ Teaching Assistant', designation: 'Obs & Gyn Clinical Coordinator', dept: 'obs', email: 'dr.rawda@dmcg.edu', phone: '0097142120606'},
+            {name: 'Dr. Yusuf Parvez', title: '👨‍⚕️ Associate Professor', designation: 'Pediatrics Division', dept: 'peds', email: 'dr.yusuf@dmcg.edu', phone: 'NA'},
+            {name: 'Dr. Egbal Husein', title: '👨‍⚕️ Assistant Professor', designation: 'Pediatrics Division', dept: 'peds', email: 'dr.egbal@dmcg.edu', phone: 'NA'},
+            {name: 'Dr. Umama Naeem', title: '👩‍⚕️ Academic Teaching Assistant', designation: 'Pediatrics Clinical Coordinator', dept: 'peds', email: 'dr.umama@dmcg.edu', phone: '0097142120554'},
+            {name: 'Dr. Amir Rabee Saber', title: '🏥 Clinical Coordinator', designation: 'Rashid Hospital (Surgery)', dept: 'surgery', email: 'AMSaber@dubaihealth.ae', phone: '050-6370998'},
+            {name: 'Dr. Zahra Kasim', title: '🏥 Clinical Coordinator', designation: 'Rashid Hospital AE (Surgery)', dept: 'surgery', email: 'ZKADhuhaibat@dubaihealth.ae', phone: '055-2200186'},
+            {name: 'Dr. Sameera Naureen', title: '👩‍⚕️ Clinical Coordinator', designation: 'Dubai Hospital (Surgery)', dept: 'surgery', email: 'SNaureen@dubaihealth.ae', phone: '050-1626419'},
+            {name: 'Dr. Khadija Hafidh', title: '👩‍⚕️ Clinical Coordinator', designation: 'Rashid Hospital (Medicine)', dept: 'medicine', email: 'kahafidh@dubaihealth.ae', phone: '050-4558 540'},
+            {name: 'Dr. Fawzi Al Tayb Bachet', title: '👨‍⚕️ Clinical Coordinator', designation: 'Dubai Hospital (Medicine)', dept: 'medicine', email: 'fbachet@dubaihealth.ae', phone: '056-2247 200'},
+            {name: 'Dr. Shamsa Mohammad Abdulla Saif Al Suwaidi', title: '👩‍⚕️ Clinical Coordinator', designation: 'Professional Development Office (PHC)', dept: 'phc', email: 'SAlSuwaidi@dubaihealth.ae', phone: '055-4225559'}
+        ];
+
+function getHospitalClass(hospital, spec) {
+    // Check specialty first for psychiatry
+    if (spec && (spec.toLowerCase().includes("psych") || 
+                 spec.toLowerCase().includes("psychiatry"))) {
+        return "psych";
+    }
+    
+    // Then check hospital names
+    if (hospital.includes("Rashid")) return "hospital-rashid";
+    if (hospital.includes("Dubai")) return "hospital-dubai";
+    if (hospital.includes("Latifa")) return "hospital-latifa";
+    if (hospital.includes("Al Twar")) return "hc-twar";
+    if (hospital.includes("Al Khawaneej")) return "hc-khawaneej";
+    if (hospital.includes("Nadd")) return "hc-nadd";
+    if (hospital.includes("Al Mizhar")) return "hc-mizhar";
+    if (hospital.includes("Al Qusais")) return "hc-qusais";
+    if (hospital.includes("Campus")) return "campus";
+    
+    return "campus";
+}
+
+        function renderTimeline() {
+            const tbody = document.getElementById('timelineBody');
+            tbody.innerHTML = '';
+            const allStudents = [...students.surgery, ...students.medicine, ...students.phc];
+            
+            let lastDiv = '';
+            allStudents.forEach((s, idx) => {
+                if (s.div !== lastDiv) {
+                    const divRow = tbody.insertRow();
+                    divRow.classList.add('division-header');
+                    const divCell = divRow.insertCell(0);
+                    divCell.colSpan = 19;
+                    divCell.textContent = `📌 ${s.div.toUpperCase()} DIVISION`;
+                    lastDiv = s.div;
+                }
+                
+                const row = tbody.insertRow();
+                row.dataset.division = s.div.toLowerCase();
+                row.dataset.name = s.name.toLowerCase();
+                let html = `<td class="student-name">${s.name}<br><small>${s.id} | ${s.group}</small></td>`;
+                s.rot.forEach(r => {
+                    const [spec, hospFull] = r.split('|');
+                    const clz = getHospitalClass(hospFull || '', spec);
+                    html += `
+                        <td>
+                            <div class="rotation-cell ${clz}" title="${spec} at ${hospFull || ''}">
+                                <span class="rot-spec">${spec || ''}</span>
+                                <span class="rot-hosp">${hospFull || ''}</span>
+                            </div>
+                        </td>`;
+                });
+                row.innerHTML = html;
+            });
+        }
+
+        function renderDirectory() {
+            const grid = document.getElementById('directoryGrid');
+            grid.innerHTML = '';
+            const allStudents = [...students.surgery, ...students.medicine, ...students.phc];
+            allStudents.forEach(s => {
+                const phone = phoneNumbers[s.name] || 'N/A';
+                grid.innerHTML += `<div class="student-card" data-division="${s.div.toLowerCase()}" data-search="${s.name.toLowerCase()} ${s.id} ${phone}"><div class="name">${s.name}</div><div class="id">📋 ${s.id}</div><div class="phone">📱 ${phone}</div><div class="group">👥 ${s.group}</div></div>`;
+            });
+        }
+
+        function renderFaculty() {
+            const grid = document.getElementById('facultyGrid');
+            grid.innerHTML = '';
+            faculty.forEach(f => {
+                grid.innerHTML += `<div class="faculty-card" data-dept="${f.dept}" data-search="${f.name.toLowerCase()} ${f.designation.toLowerCase()}"><div class="title">${f.title}</div><div class="name">${f.name}</div><div class="designation">${f.designation}</div><div class="contact">📧 ${f.email}</div><div class="email">📱 ${f.phone}</div></div>`;
+            });
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function filterByDivision(div) {
+            const rows = document.querySelectorAll('#timelineBody tr');
+            rows.forEach(row => {
+                if (!div || row.classList.contains('division-header') || row.dataset.division === div) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function searchByName(term) {
+            const rows = document.querySelectorAll('#timelineBody tr');
+            rows.forEach(row => {
+                if (!term || row.classList.contains('division-header') || row.dataset.name?.includes(term.toLowerCase())) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        function filterDirectory(term) {
+            document.querySelectorAll('.student-card').forEach(card => {
+                card.style.display = !term || card.dataset.search.includes(term.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        function filterByDivDir(div) {
+            document.querySelectorAll('.student-card').forEach(card => {
+                card.style.display = !div || card.dataset.division === div ? 'block' : 'none';
+            });
+        }
+
+        function filterFaculty(term) {
+            document.querySelectorAll('.faculty-card').forEach(card => {
+                card.style.display = !term || card.dataset.search.includes(term.toLowerCase()) ? 'block' : 'none';
+            });
+        }
+
+        function filterByDept(dept) {
+            document.querySelectorAll('.faculty-card').forEach(card => {
+                card.style.display = !dept || card.dataset.dept === dept ? 'block' : 'none';
+            });
+        }
+// ========== SCROLL TIMELINE & PROGRESS BAR ==========
+
+function scrollTimeline(direction) {
+    const container = document.getElementById('timelineContainer');
+    const scrollAmount = 300;
+    
+    if (direction === 'left') {
+        container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else if (direction === 'right') {
+        container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+    
+    updateScrollProgress();
+}
+
+function updateScrollProgress() {
+    const container = document.getElementById('timelineContainer');
+    const progressBar = document.getElementById('scrollProgress');
+    
+    if (!container || !progressBar) return;
+    
+    const scrollLeft = container.scrollLeft;
+    const scrollWidth = container.scrollWidth;
+    const containerWidth = container.clientWidth;
+    const maxScroll = scrollWidth - containerWidth;
+    
+    const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
+    progressBar.style.width = progress + '%';
+}
+
+// Initialize scroll progress on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('timelineContainer');
+    if (container) {
+        container.addEventListener('scroll', updateScrollProgress);
+        updateScrollProgress();
+    }
+});
+
+// Function 2: Show Floating Week Badge
+function showWeekBadge(weekNum) {
+    // Remove existing badge if any
+    const existing = document.getElementById('week-badge');
+    if (existing) existing.remove();
+    
+    // Create new badge
+    const badge = document.createElement('div');
+    badge.id = 'week-badge';
+    badge.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: #000;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: 900;
+        z-index: 999;
+        box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+        font-size: 0.9em;
+    `;
+    badge.innerHTML = `📅 Current Week: <span style="font-size: 1.3em">W${weekNum}</span>`;
+    document.body.appendChild(badge);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => badge.remove(), 5000);
+}
+
+
+// Function 3: Initialize Hover Effects on Rotation Cells
+function initializeRotationCellInteractivity() {
+    document.querySelectorAll('.rotation-cell').forEach(cell => {
+        const spec = cell.querySelector('.rot-spec')?.textContent.trim();
+        const hosp = cell.querySelector('.rot-hosp')?.textContent.trim();
+        
+        if (spec && hosp) {
+            cell.setAttribute('data-tooltip', `📚 ${spec} @ 🏥 ${hosp}`);
+        }
+        
+        cell.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.12) translateY(-3px)';
+            this.style.zIndex = '100';
+        });
+        
+        cell.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1) translateY(0)';
+            this.style.zIndex = 'auto';
+        });
+    });
+}
+// ==========  CODE START ==========
+
+// Games Database
+const games = [
+    {
+        id: 'speed-diagnosis',
+        icon: '⚡',
+        title: 'Speed Diagnosis Challenge',
+        description: 'Answer 10 cases in 30 seconds each',
+        duration: '~5 min',
+        points: '50 pts',
+        questions: [
+            {
+                q: "A 65-year-old male presents with sudden onset chest pain radiating to the left arm, diaphoresis, and nausea. What is the most likely diagnosis?",
+                options: ["Acute Myocardial Infarction", "Gastroesophageal Reflux", "Panic Attack", "Costochondritis"],
+                correct: 0
+            },
+            {
+                q: "A 28-year-old female presents with severe lower abdominal pain, missed period, and positive pregnancy test. Ultrasound shows no intrauterine pregnancy. Diagnosis?",
+                options: ["Normal early pregnancy", "Ectopic pregnancy", "Ovarian cyst", "Appendicitis"],
+                correct: 1
+            },
+            {
+                q: "A 5-year-old child presents with barking cough, stridor, and fever. What is the diagnosis?",
+                options: ["Asthma", "Bronchiolitis", "Croup (Laryngotracheobronchitis)", "Pneumonia"],
+                correct: 2
+            },
+            {
+                q: "A 45-year-old diabetic presents with sudden vision loss, no pain, and a 'curtain coming down' sensation. Diagnosis?",
+                options: ["Migraine", "Glaucoma", "Retinal detachment", "Conjunctivitis"],
+                correct: 2
+            },
+            {
+                q: "A 72-year-old presents with sudden onset right-sided weakness, slurred speech, and facial droop lasting 10 minutes, now resolved. What happened?",
+                options: ["Stroke", "Transient Ischemic Attack (TIA)", "Seizure", "Hypoglycemia"],
+                correct: 1
+            },
+            {
+                q: "A 30-year-old presents with sudden severe headache 'worst of my life', photophobia, and neck stiffness. Most likely diagnosis?",
+                options: ["Migraine", "Tension headache", "Subarachnoid hemorrhage", "Meningitis"],
+                correct: 2
+            },
+            {
+                q: "A 60-year-old male with chronic cough, weight loss, night sweats, and hemoptysis. CXR shows cavitary lesion. Diagnosis?",
+                options: ["Lung cancer", "Tuberculosis", "Pneumonia", "Bronchitis"],
+                correct: 1
+            },
+            {
+                q: "A 25-year-old presents with fever, sore throat, difficulty swallowing, and muffled 'hot potato' voice. Diagnosis?",
+                options: ["Pharyngitis", "Tonsillitis", "Peritonsillar abscess", "Epiglottitis"],
+                correct: 2
+            },
+            {
+                q: "An 18-year-old presents with sudden pleuritic chest pain and shortness of breath after playing basketball. Tall, thin build. Diagnosis?",
+                options: ["Myocardial infarction", "Pulmonary embolism", "Pneumothorax", "Asthma attack"],
+                correct: 2
+            },
+            {
+                q: "A 55-year-old presents with jaundice, dark urine, pale stools, and right upper quadrant pain. What is the diagnosis?",
+                options: ["Hepatitis", "Choledocholithiasis (bile duct stone)", "Pancreatitis", "Gastritis"],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 'clinical-reasoning',
+        icon: '🧩',
+        title: 'Clinical Reasoning Puzzle',
+        description: 'Build complete management plan step-by-step',
+        duration: '~10 min',
+        points: '75 pts',
+        questions: [
+            {
+                q: "Step 1: A 68-year-old presents with crushing chest pain for 45 minutes. First immediate action?",
+                options: ["Order troponin", "Give aspirin 300mg + oxygen", "Arrange stress test", "Discharge with PPIs"],
+                correct: 1
+            },
+            {
+                q: "Step 2: ECG shows ST elevation in leads II, III, aVF. Next step?",
+                options: ["Repeat ECG in 6 hours", "Activate cath lab for primary PCI", "Give morphine only", "Send patient home"],
+                correct: 1
+            },
+            {
+                q: "Step 3: Patient develops hypotension (BP 80/50). Best immediate management?",
+                options: ["Give beta-blocker", "IV fluids + inotropic support", "Discharge patient", "Give more morphine"],
+                correct: 1
+            },
+            {
+                q: "Step 4: Post-PCI, which medication is essential for dual antiplatelet therapy?",
+                options: ["Aspirin + Clopidogrel", "Aspirin + Warfarin", "Only aspirin", "No medication needed"],
+                correct: 0
+            },
+            {
+                q: "Step 5: Before discharge, what lifestyle modification is most critical?",
+                options: ["Increase salt intake", "Smoking cessation + cardiac rehab", "Avoid all exercise", "Continue high-fat diet"],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 'diagnosis-duel',
+        icon: '⚔️',
+        title: 'Diagnosis Duel',
+        description: 'Head-to-head real-time diagnosis battles',
+        duration: 'Variable',
+        points: '30 pts',
+        questions: [
+            {
+                q: "A 3-year-old with fever, drooling, tripod positioning, and stridor. Diagnosis?",
+                options: ["Croup", "Epiglottitis", "Bronchiolitis", "Asthma"],
+                correct: 1
+            },
+            {
+                q: "A 40-year-old with sudden 'thunderclap' headache, worst ever. CT shows blood in subarachnoid space. Diagnosis?",
+                options: ["Migraine", "Tension headache", "Subarachnoid hemorrhage", "Cluster headache"],
+                correct: 2
+            },
+            {
+                q: "A 22-year-old with fever, rash, hypotension, recent tampon use. Diagnosis?",
+                options: ["Sepsis", "Toxic Shock Syndrome", "Meningitis", "Influenza"],
+                correct: 1
+            },
+            {
+                q: "A 50-year-old diabetic with fever, severe perineal pain, crepitus, and rapidly spreading necrosis. Diagnosis?",
+                options: ["Cellulitis", "Abscess", "Fournier's gangrene", "Dermatitis"],
+                correct: 2
+            },
+            {
+                q: "A 35-year-old with sudden vision loss, floaters, and 'curtain' over vision. Diagnosis?",
+                options: ["Cataracts", "Glaucoma", "Retinal detachment", "Conjunctivitis"],
+                correct: 2
+            }
+        ]
+    },
+    {
+        id: 'exam-prep',
+        icon: '📚',
+        title: 'Exam Prep Quiz',
+        description: '5 randomized questions from all specialties',
+        duration: '~5 min',
+        points: '50 pts',
+        questions: [
+            {
+                q: "Which nerve is most commonly injured in anterior shoulder dislocation?",
+                options: ["Radial nerve", "Axillary nerve", "Median nerve", "Ulnar nerve"],
+                correct: 1
+            },
+            {
+                q: "What is the gold standard investigation for pulmonary embolism?",
+                options: ["Chest X-ray", "ECG", "CT Pulmonary Angiography (CTPA)", "D-dimer"],
+                correct: 2
+            },
+            {
+                q: "First-line treatment for acute severe asthma exacerbation?",
+                options: ["Antibiotics", "Oxygen + Salbutamol + Steroids", "Intubation immediately", "Discharge with inhaler"],
+                correct: 1
+            },
+            {
+                q: "What is the most common cause of hyperthyroidism?",
+                options: ["Hashimoto's thyroiditis", "Graves' disease", "Thyroid cancer", "Iodine deficiency"],
+                correct: 1
+            },
+            {
+                q: "Which medication is contraindicated in pregnancy for hypertension?",
+                options: ["Methyldopa", "Nifedipine", "ACE inhibitors", "Labetalol"],
+                correct: 2
+            }
+        ]
+    },
+    {
+        id: 'speed-rounds',
+        icon: '🏃',
+        title: 'Speed Round Cases',
+        description: '3 quick cases: 1-line diagnosis + management',
+        duration: '~8 min',
+        points: '60 pts',
+        questions: [
+            {
+                q: "Case 1: 60-year-old male, sudden tearing chest pain radiating to back, BP difference between arms. Diagnosis + Management?",
+                options: ["MI → Aspirin", "Aortic dissection → IV fluids + beta-blockers + urgent CT", "GERD → Antacids", "Panic attack → Reassurance"],
+                correct: 1
+            },
+            {
+                q: "Case 2: 25-year-old pregnant woman at 32 weeks, severe headache, BP 170/110, proteinuria. Diagnosis + Management?",
+                options: ["Migraine → Paracetamol", "Pre-eclampsia → IV Magnesium sulfate + delivery planning", "Tension headache → Reassure", "Dehydration → IV fluids"],
+                correct: 1
+            },
+            {
+                q: "Case 3: 8-year-old with sudden high fever, drooling, toxic appearance, unable to swallow. Diagnosis + Management?",
+                options: ["Tonsillitis → Oral antibiotics", "Epiglottitis → Secure airway (intubation) + IV antibiotics", "Pharyngitis → Symptomatic treatment", "Croup → Nebulized epinephrine"],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 'clinical-trivia',
+        icon: '💎',
+        title: 'Clinical Pearl Trivia',
+        description: '10 quick facts and learning questions',
+        duration: '~5 min',
+        points: '40 pts',
+        questions: [
+            {
+                q: "Murphy's sign is associated with which condition?",
+                options: ["Appendicitis", "Acute cholecystitis", "Pancreatitis", "Peptic ulcer"],
+                correct: 1
+            },
+            {
+                q: "Virchow's triad refers to risk factors for which condition?",
+                options: ["Stroke", "Pulmonary embolism", "Myocardial infarction", "Deep vein thrombosis"],
+                correct: 3
+            },
+            {
+                q: "What does Chvostek's sign indicate?",
+                options: ["Hypercalcemia", "Hypocalcemia", "Hyperkalemia", "Hyponatremia"],
+                correct: 1
+            },
+            {
+                q: "Grey Turner's sign is seen in which condition?",
+                options: ["Appendicitis", "Acute pancreatitis", "Cholecystitis", "Diverticulitis"],
+                correct: 1
+            },
+            {
+                q: "Which antibody is specific for Systemic Lupus Erythematosus (SLE)?",
+                options: ["Anti-CCP", "Anti-dsDNA", "Anti-Ro", "RF"],
+                correct: 1
+            },
+            {
+                q: "What is the first-line antibiotic for community-acquired pneumonia in adults?",
+                options: ["Ciprofloxacin", "Amoxicillin", "Metronidazole", "Vancomycin"],
+                correct: 1
+            },
+            {
+                q: "Kussmaul breathing is seen in which condition?",
+                options: ["Diabetic ketoacidosis", "Asthma", "COPD", "Pneumonia"],
+                correct: 0
+            },
+            {
+                q: "What is the Beck's triad in cardiac tamponade?",
+                options: ["Hypotension + muffled heart sounds + JVD", "Chest pain + dyspnea + cough", "Fever + tachycardia + hypotension", "Headache + nausea + vomiting"],
+                correct: 0
+            },
+            {
+                q: "Which Glasgow Coma Scale score indicates severe head injury?",
+                options: ["13-15", "9-12", "≤8", "15"],
+                correct: 2
+            },
+            {
+                q: "Cullen's sign indicates what pathology?",
+                options: ["Appendicitis", "Acute pancreatitis with retroperitoneal hemorrhage", "Cholecystitis", "Bowel obstruction"],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 'peer-challenge',
+        icon: '🏆',
+        title: 'Peer Challenge Arena',
+        description: 'Challenge fellow students to head-to-head matches',
+        duration: 'Real-time',
+        points: '40-60 pts',
+        questions: [
+            {
+                q: "Which cranial nerve is responsible for lateral eye movement?",
+                options: ["CN III (Oculomotor)", "CN IV (Trochlear)", "CN VI (Abducens)", "CN VII (Facial)"],
+                correct: 2
+            },
+            {
+                q: "Most common cause of acute pancreatitis?",
+                options: ["Alcohol", "Gallstones", "Trauma", "Hyperlipidemia"],
+                correct: 1
+            },
+            {
+                q: "What is the reversal agent for warfarin?",
+                options: ["Protamine sulfate", "Vitamin K", "Naloxone", "Flumazenil"],
+                correct: 1
+            },
+            {
+                q: "Which valve is most commonly affected in rheumatic heart disease?",
+                options: ["Aortic", "Mitral", "Tricuspid", "Pulmonary"],
+                correct: 1
+            },
+            {
+                q: "First-line treatment for status epilepticus?",
+                options: ["Phenytoin IV", "Lorazepam or Diazepam IV", "Carbamazepine", "Valproate"],
+                correct: 1
+            }
+        ]
+    },
+    {
+        id: 'mystery-case',
+        icon: '🔍',
+        title: 'Mystery Case',
+        description: 'Diagnose with minimal information, more clues = fewer points',
+        duration: '~15 min',
+        points: '100 pts',
+        questions: [
+            {
+                q: "Clue 1: 55-year-old male, chronic smoker. What could this be?",
+                options: ["Lung cancer", "COPD", "Tuberculosis", "Any respiratory disease"],
+                correct: 3
+            },
+            {
+                q: "Clue 2: Persistent cough for 3 months, hemoptysis. Now what's your diagnosis?",
+                options: ["Bronchitis", "Lung cancer or TB", "Pneumonia", "Asthma"],
+                correct: 1
+            },
+            {
+                q: "Clue 3: CXR shows peripheral mass with spiculated borders. Final diagnosis?",
+                options: ["Pneumonia", "Tuberculosis", "Lung cancer (likely malignant)", "Bronchitis"],
+                correct: 2
+            },
+            {
+                q: "Clue 4: Biopsy confirms adenocarcinoma. What's the next step?",
+                options: ["Discharge patient", "CT chest + staging + MDT discussion", "Give antibiotics", "Observe only"],
+                correct: 1
+            },
+            {
+                q: "Clue 5: Staging shows T2N1M0. What does this mean?",
+                options: ["Metastatic disease", "Localized with lymph node involvement", "Early stage, no nodes", "Terminal stage"],
+                correct: 1
+            }
+        ]
+    }
+];
+
+// Leaderboard Data
+const leaderboardData = [
+    { name: 'YOUR_STUDENT_NAME', score: 420, streak: 12 },
+    // ... more students
+];
+
+
+// Badges
+const badges = [
+    { id: 1, icon: '🔥', name: '+7 Day Streak', locked: false },
+    { id: 2, icon: '🎯', name: 'Perfect Day', locked: false },
+    { id: 3, icon: '⚡', name: 'Speed Master', locked: true },
+    { id: 4, icon: '🧠', name: 'Quiz Expert', locked: true },
+    { id: 5, icon: '⚔️', name: 'Duel Champion', locked: true },
+    { id: 6, icon: '🏆', name: 'Legend', locked: true }
+];
+
+let todayPoints = 0;
+let gamesPlayedToday = 0;
+let currentStreak = 7;
+
+// Render Games
+function renderGamingGames() {
+  const container = document.getElementById('gamesContainer');
+  if (!container) return;
+  
+  container.innerHTML = games.map(game => `
+    <div class="game-card">
+      <div class="game-icon">${game.icon}</div>
+      <div class="game-title">${game.title}</div>
+      <div class="game-description">${game.description}</div>
+      <div class="game-meta">
+        <span>📚 Questions: ${game.questions.length}</span>
+        <span>⏱️ Time: ${game.duration}</span>
+      </div>
+<button class="play-btn" onclick="playGame('${game.id}')">START QUIZ</button>
+    </div>
+  `).join('');
+}
+
+// Render Leaderboard
+function renderLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+    if (!tbody) return;
+    const sorted = [...leaderboardData].sort((a, b) => b.score - a.score);
+    
+    tbody.innerHTML = sorted.map((student, idx) => {
+        const medals = ['🥇', '🥈', '🥉'];
+        return `
+            <tr>
+                <td style="text-align: center;">
+                    <span class="rank-badge">${medals[idx] || (idx + 1)}</span>
+                </td>
+                <td class="student-name-lb">${student.name}</td>
+                <td class="score-cell">${student.score}</td>
+                <td style="text-align: center;"><span class="streak-badge">🔥 ${student.streak} days</span></td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Render Badges
+function renderBadges() {
+    const container = document.getElementById('badgesContainer');
+    if (!container) return;
+    container.innerHTML = badges.map(badge => `
+        <div class="badge ${badge.locked ? 'locked' : ''}">
+            <div class="badge-icon">${badge.icon}</div>
+            <div class="badge-name">${badge.name}</div>
+        </div>
+    `).join('');
+}
+
+// Update Stats
+function updateGamingStats() {
+    const todayEl = document.getElementById('todayPoints');
+    const streakEl = document.getElementById('streak');
+    const rankEl = document.getElementById('rank');
+    const gamesEl = document.getElementById('gamesPlayed');
+    
+    if (todayEl) todayEl.textContent = todayPoints;
+    if (streakEl) streakEl.textContent = currentStreak;
+    if (rankEl) rankEl.textContent = '#15';
+    if (gamesEl) gamesEl.textContent = gamesPlayedToday;
+}
+
+// Play Game
+let currentGame = null;
+let currentQuestion = 0;
+let score = 0;
+let selectedAnswer = null;
+
+function playGame(gameId) {
+  console.log('Playing game:', gameId);
+  const game = games.find(g => g.id === gameId);
+  
+  if (!game) {
+    console.error('Game not found:', gameId);
+    alert('Game not found!');
+    return;
+  }
+  
+  currentGame = game;
+  currentQuestion = 0;
+  score = 0;
+  
+  const modal = document.getElementById('gameModal');
+  if (!modal) {
+    console.error('Modal not found!');
+    return;
+  }
+  
+  modal.classList.add('active');
+  
+  if (game.questions && game.questions.length > 0) {
+    setTimeout(() => renderQuestion(), 100);  // Small delay to ensure DOM ready
+  } else {
+    showComingSoon(game);
+  }
+}
+
+function closeGame() {
+  const modal = document.getElementById('gameModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+  currentGame = null;
+  currentQuestion = 0;
+  score = 0;
+}
+
+function renderQuestion() {
+  if (!currentGame || !currentGame.questions || currentGame.questions.length === 0) {
+    console.error('Invalid game data');
+    return;
+  }
+  
+  const gameArea = document.getElementById('gameArea');
+  if (!gameArea) {
+    console.error('gameArea element not found!');
+    return;
+  }
+  
+  const question = currentGame.questions[currentQuestion];
+  if (!question) {
+    console.error('Question not found');
+    return;
+  }
+  
+  const progress = ((currentQuestion + 1) / currentGame.questions.length) * 100;
+  
+  gameArea.innerHTML = `
+    <div style="width: 100%; text-align: center;">
+      <h2 style="color: #667eea; font-size: 2em; margin-bottom: 10px; text-align: center;">
+        ${currentGame.icon} ${currentGame.title}
+      </h2>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${progress}%"></div>
+      </div>
+      <div class="score-display">Question ${currentQuestion + 1}/${currentGame.questions.length} | Score: ${score} points</div>
+      <div class="question-container">
+        <div class="question-text">${question.q}</div>
+        <div class="options-grid" id="optionsGrid"></div>
+      </div>
+    </div>
+  `;
+  
+  renderOptions(question);
+}
+
+function renderOptions(question) {
+  const optionsGrid = document.getElementById('optionsGrid');
+  if (!optionsGrid) {
+    console.error('optionsGrid not found');
+    return;
+  }
+  
+  optionsGrid.innerHTML = '';
+  
+  if (!question.options || question.options.length === 0) {
+    console.error('No options found in question');
+    return;
+  }
+  
+  question.options.forEach((option, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.textContent = option;
+    btn.style.cursor = 'pointer';
+    btn.disabled = false;
+    btn.onclick = () => selectAnswer(index, question.correct);
+    optionsGrid.appendChild(btn);
+  });
+}
+
+function selectAnswer(selected, correct) {
+  selectedAnswer = selected;
+  const buttons = document.querySelectorAll('.option-btn');
+  
+  buttons.forEach((btn, idx) => {
+    btn.disabled = true;
+    btn.style.pointerEvents = 'none';
+    
+    if (idx === correct) {
+      btn.classList.add('correct');
+      btn.style.background = 'linear-gradient(135deg, #43e97b, #38f9d7)';
+      btn.style.color = '#000';
+      btn.style.fontWeight = '900';
+    } else if (idx === selected && selected !== correct) {
+      btn.classList.add('incorrect');
+      btn.style.background = 'linear-gradient(135deg, #ff6b6b, #ff5252)';
+      btn.style.color = '#fff';
+    }
+  });
+  
+  if (selected === correct) {
+    score += 10;
+  }
+  
+  const scoreDisplay = document.querySelector('.score-display');
+  if (scoreDisplay) {
+    scoreDisplay.textContent = `Question ${currentQuestion + 1}/${currentGame.questions.length} | Score: ${score} points`;
+  }
+  
+  setTimeout(nextQuestion, 1500);
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  
+  if (currentQuestion < currentGame.questions.length) {
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult() {
+  const gameArea = document.getElementById('gameArea');
+  if (!gameArea) return;
+  
+  const percentage = (score / (currentGame.questions.length * 10)) * 100;
+  let message = '';
+  
+  if (percentage >= 80) {
+    message = 'Excellent! You\'re a clinical genius!';
+  } else if (percentage >= 60) {
+    message = 'Great job! Keep it up!';
+  } else if (percentage >= 40) {
+    message = 'Good effort! Review and try again!';
+  } else {
+    message = 'Keep studying! Practice makes perfect!';
+  }
+  
+  gameArea.innerHTML = `
+    <div class="game-result">
+      <h2 style="color: #667eea; font-size: 2.5em; margin-bottom: 20px; text-align: center;">
+        ${currentGame.icon} Game Complete!
+      </h2>
+      <div class="result-score">${score}</div>
+      <div style="color: #b0b0d0; font-size: 1.2em; text-align: center; margin-bottom: 20px;">
+        out of ${currentGame.questions.length * 10} points
+      </div>
+      <div class="result-message">${message}</div>
+      <div style="color: #43e97b; font-size: 1.3em; margin-top: 20px; text-align: center;">
+        ${score} points earned!
+      </div>
+      <button class="play-again-btn" onclick="playGame('${currentGame.id}')" style="margin-top: 20px; background: linear-gradient(135deg, #43e97b, #38f9d7); color: #000;">Play Again</button>
+      <button class="play-again-btn" onclick="closeGame()" style="margin-top: 10px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff;">Back to Hub</button>
+    </div>
+  `;
+}
+// Initialize 
+function initGamingHub() {
+    renderGamingGames();
+    renderLeaderboard();
+    renderBadges();
+    updateGamingStats();
+}
+
+// ==========  CODE END ==========
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderTimeline();
+    renderDirectory();
+    renderFaculty();
+    initializeRotationCellInteractivity();  // ✅ Add hover effects
+    highlightCurrentWeek();                  // ✅ Highlight current week
+    initGamingHub();
+});
+// ========== THEME TOGGLE FUNCTION ==========
+
+function toggleTheme() {
+    const body = document.body;
+    const button = document.getElementById('themeToggle');
+    
+    body.classList.toggle('light-mode');
+    
+    // Change button icon
+    if (body.classList.contains('light-mode')) {
+        button.textContent = '🌙'; // Moon for dark mode
+        localStorage.setItem('theme', 'light');
+    } else {
+        button.textContent = '☀️'; // Sun for light mode
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Load saved theme on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme');
+    const button = document.getElementById('themeToggle');
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        button.textContent = '🌙';
+    }
+});
+ </script>
+
+<!--  -->
+<div class="game-modal" id="gameModal">
+  <div class="game-content">
+    <button class="game-close" onclick="closeGame()">×</button>
+    <div id="gameArea"></div>
+  </div>
+</div>
+
+</body>
+</html>
+
+
